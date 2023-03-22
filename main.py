@@ -19,6 +19,16 @@ def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+
+@app.get("/login/login.html")
+def home(request: Request):
+    return templates.TemplateResponse("login/login.html", {"request": request})
+
+@app.get("/login/register.html")
+def home(request: Request):
+    return templates.TemplateResponse("login/register.html", {"request": request})
+
+
 @app.post("/v1/users/register")
 def register(user: models.User):
     print(user)
