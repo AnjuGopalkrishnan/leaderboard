@@ -3,7 +3,7 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
 
-engine = create_engine('postgresql://rituraj:@localhost:5432/leaderboard', echo=True)
+engine = create_engine('postgresql://postgres@localhost:5432/leaderboard', echo=True)
 metadata = MetaData()
 connection = engine.connect()
 Base = declarative_base()
