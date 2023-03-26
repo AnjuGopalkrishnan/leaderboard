@@ -48,7 +48,7 @@
                                       event.preventDefault();
                                       const params = { username: document.getElementById("userEmail").value, password: document.getElementById("userPassword").value };
                                       const req_json = JSON.stringify(params);
-                                      fetch('/v1/users/login', {
+                                      fetch('/v1/user/login', {
                                           method: 'POST',
                                           body: req_json,
                                           headers: { 'Content-Type': 'application/json' }
