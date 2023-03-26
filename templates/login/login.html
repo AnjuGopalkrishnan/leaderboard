@@ -48,6 +48,7 @@
                                       event.preventDefault();
                                       const params = { username: document.getElementById("userEmail").value, password: document.getElementById("userPassword").value };
                                       const req_json = JSON.stringify(params);
+
                                       fetch('/v1/user/login', {
                                           method: 'POST',
                                           body: req_json,
@@ -57,6 +58,7 @@
                                               if (!response.ok) {
                                                   throw new Error(`HTTP error! status: ${response.status}`);
                                               }
+                                              window.location.replace("/competition.html");
                                               return response.json();
                                           })
                                           .then(data => {

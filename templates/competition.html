@@ -1,0 +1,100 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Competition Page List</title>
+</head>
+
+<style>
+
+
+    /* Custom CSS for competition tiles */
+    .competition-tile {
+        margin-bottom: 10px;
+        border: none;
+        border-radius: 10px;
+        padding: 10px;
+        background-color: #f8f9fa;
+    }
+
+</style>
+<body>
+
+    <div class="container">
+        <h1 class="my-4" align="center">Competitions</h1>
+
+        <p align="center">Grow your SQL skills by competing in our exciting competitions</p>
+        <img src="static\img\landing_header.png" alt="your image" align="right">
+
+        <br />
+        <br />
+        <br />
+        <br />
+        <!--<img src="static\img\download.png" alt="your image" align="left" width="20" height="15">
+
+    <h4 class="my-4">Current Competitions</h4> -->
+
+        <div>
+            <img src="static\img\clock.png" alt="your image" align="left" width="30" height="30">
+            <h4>&nbsp; &nbsp; Active Competitions</h4>
+            <br />
+        </div>
+
+        <div class="row" id="competition-list">
+            <!-- Card elements will be dynamically added here -->
+        </div>
+
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper-base.min.js" integrity="sha384-e7D5fgaZuV7Kj3h77/jBwrccJ8QjKiv0CvL0/AiABayRrvKj4d4zhTC4X9BtCpVt" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            // Make Fetch API call to fetch competition data
+            console.log("here");
+            fetch("/v1/competitions")
+                .then(response => response.json())
+                .then(data => {
+                    // Iterate over each competition and add it to the list
+                    //console.log(data);
+                    data.forEach(function (competition) {
+                        var competitionItem = $('<div class="col-lg-4 col-md-6 mb-4">')
+                            .addClass("list-group-item list-group-item-action competition-tile") // add the competition-tile class
+                            .append($('<div class="card h-100">')
+                                .append($('<div class="card-body">')
+                                    .append($('<h4 class="card-title">')
+                                        .text(competition.title))
+                                    //.append($('<p class="card-text">')
+                                    //    .text(competition.description))
+                                    .append($('<a href="#" class="btn btn-primary">')
+                                        .text('Learn More')
+                                        .attr("data-id", competition.c_id))));
+                        $("#competition-list").append(competitionItem);
+                    });
+                })
+                .catch(error => console.log("Error fetching competition data: ", error));
+
+
+
+            $("#competition-list").on("click", ".btn", function () {
+                // Get the id of the clicked competition
+                var competitionId = $(this).attr("data-id");
+                console.log("comp id ");
+                console.log(competitionId);
+                window.location.href = 'onecompetition.html?id=' + competitionId;
+
+            });
+        });
+    </script>
+</body>
+</html>

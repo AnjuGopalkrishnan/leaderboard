@@ -34,6 +34,14 @@ def home(request: Request):
 def home(request: Request):
     return templates.TemplateResponse("login/register.html", {"request": request})
 
+@app.get("/competition.html")
+def home(request: Request):
+    return templates.TemplateResponse("competition.html", {"request": request})
+
+
+@app.get("/onecompetition.html")
+def home(request: Request):
+    return templates.TemplateResponse("onecompetition.html", {"request": request})
 
 @app.post("/v1/user/register")
 def register(user: models.User, db: Session = Depends(infra.db.get_db)):
@@ -62,18 +70,20 @@ def login(user: models.User):
     query = text("SELECT * FROM users WHERE username = :username LIMIT 1")
     with infra.db.engine.begin() as conn:
         res = conn.execute(query, values)
-
-    if not res:
+ 
+    row = res.fetchone()
+    if row is None:
         raise HTTPException(
             status_code=401,
             detail="Incorrect username or password",
         )
-    for row in res:
-        if not lib.authenticate.verify_password(user.password, row[2]):
+    
+    if not lib.authenticate.verify_password(user.password, row[2]):
             raise HTTPException(
                 status_code=401,
                 detail="Incorrect username or password",
             )
+#    print("user is ", user)
     access_token = jwt.create_access_token(payload={"username": user.username})
     return {"access_token": access_token}
 

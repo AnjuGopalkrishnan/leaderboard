@@ -57,7 +57,7 @@
                                       event.preventDefault();
                                       const params = { username: document.getElementById("emailId").value, password: document.getElementById("password").value };
                                       const req_json = JSON.stringify(params);
-                                      fetch('/v1/users/register', {
+                                      fetch('/v1/user/register', {
                                           method: 'POST',
                                           body: req_json,
                                           headers: { 'Content-Type': 'application/json' }
