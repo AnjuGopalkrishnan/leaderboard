@@ -58,11 +58,12 @@
                                               if (!response.ok) {
                                                   throw new Error(`HTTP error! status: ${response.status}`);
                                               }
-                                              window.location.replace("/competition.html");
                                               return response.json();
                                           })
                                           .then(data => {
-                                              console.log(data);
+                                              //console.log(data.access_token);
+                                              window.location.replace("/competition.html?access_token=" + data.access_token);
+
                                           })
                                           .catch(error => console.error(error));
 

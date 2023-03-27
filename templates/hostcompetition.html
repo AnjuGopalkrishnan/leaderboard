@@ -1,0 +1,243 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Host Competitions</title>
+<style>
+    .text2 {
+        float: left;
+        width: 50%;
+    }
+
+    .image {
+        float: right;
+        width: 50%;
+    }
+
+    .container {
+        border: none;
+        box-sizing: border-box;
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .text {
+        font-family: Arial, sans-serif; /* Change font family */
+        font-size: 18px; /* Increase font size */
+        line-height: 1.5; /* Add some line height for readability */
+        color: #333; /* Change text color */
+        text-align: justify; /* Justify the text for better alignment */
+    }
+    .form-field {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+    }
+
+        .form-field label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-field .form-input {
+            position: relative;
+        }
+
+            .form-field .form-input:before {
+                content: attr(data-title);
+                position: absolute;
+                top: -10px;
+                left: 10px;
+                background-color: #fff;
+                font-size: 12px;
+                padding: 0 5px;
+            }
+
+        .form-field input,
+        .form-field textarea {
+            padding: 5px;
+            border: none;
+            border-radius: 3px;
+        }
+
+            .form-field input[type="file"] {
+                border: 1px solid #ccc;
+                padding: 5px;
+                border-radius: 3px;
+                background-color: #fff;
+            }
+
+    button[type="submit"] {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        padding: 5px 10px;
+    }
+
+
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    li {
+        margin-bottom: 5px;
+    }
+
+    #query-container {
+        display: flex;
+        flex-direction: column;
+        margin: 20px 0;
+    }
+
+     .query-row label {
+            margin-right: 10px;
+     }
+
+    .query-input {
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100%;
+    }
+
+    #next-btn, #submit-btn {
+        margin-top: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 4px;
+        border: none;
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    #next-btn:hover, #submit-btn:hover {
+            background-color: #3e8e41;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="text text2">
+            <h2>Host your SQL competition on ABC</h2>
+            <p>
+                Whether you’re an SQL enthusiast, a teacher in class, or part of a business looking to solve challenging problems,
+                the ABC platform connects your audience with your SQL goals.
+            </p>
+        </div>
+        <div class="image">
+            <img src="static\img\comp.svg" alt="your image" />
+        </div>
+        <div class="text">
+            <h2>
+                Why a Kaggle Competition?
+            </h2>
+            <p>
+                Kaggle is the home of data science, with over 13 million users, ready to solve your predictive modeling problem through data competitions.
+
+                You set the terms, Kagglers construct their algorithms, and our website scores their accuracy in real time to find the winner. Competitions are the smart, simple way to tackle a tough business problem, educate students, or simply create a fun event.
+
+                You bring the problem and the data, and Kaggle brings the platform.
+            </p>
+            <h2>
+                Basic Setup
+            </h2>
+            <form>
+                <div class="form-field">
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" required></textarea>
+                </div>
+
+                <div class="form-field">
+                    <label for="file">Schema File:</label>
+                    <input type="file" id="schemaFile" name="file" required>
+                </div>
+
+                <div class="form-field" id="query-container">
+                    <div class="query-row">
+                        <label for="query-input-0">Query:</label>
+                        <input id="query-input-0" class="query-input" type="text"  style="width: 100%;" required>
+                    </div>
+                    <button type="button" id="next-btn">Next Query</button>
+                </div>
+
+                <div class="form-field">
+                    <button type="submit" id="submit-btn" name="Submit">Submit</button>
+                </div>
+            </form>
+        </div>
+        </div>
+    <script>
+        const queryContainer = document.getElementById('query-container');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        let queries = [''];
+
+        nextBtn.addEventListener('click', () => {
+            const lastInput = queryContainer.querySelector('.query-input:last-of-type');
+            if (lastInput.value !== '') {
+                const newInput = createQueryInput();
+                queries.push('');
+                if (newInput === queryContainer.querySelector('.query-input:last-of-type')) {
+                    submitBtn.click();
+                } else {
+                    queryContainer.insertBefore(newInput, nextBtn);
+                    lastInput.removeEventListener('input', handleQueryInput);
+                }
+            }
+        });
+
+        submitBtn.addEventListener('click', () => {
+            const lastInput = queryContainer.querySelector('.query-input:last-of-type');
+            if (lastInput.value !== '') {
+                queries.push('');
+            }
+
+            if (lastInput.value !== '') {
+                if (!queries.includes(lastInput.value)) {
+                    queries[queries.length - 1] = lastInput.value;
+                }
+            }
+            const queriesupdated = queries.filter(item => item !== '');
+            //Check for all reqd fields
+            if (document.getElementById("schemaFile").value != "") {
+                console.log(queriesupdated);
+            }
+        });
+
+        function handleQueryInput(e) {
+            const inputIndex = Array.from(queryContainer.querySelectorAll('.query-input')).indexOf(e.target);
+            queries[inputIndex] = e.target.value;
+        }
+
+        function createQueryInput() {
+            const inputIndex = queries.length - 1;
+            const inputId = `query-input-${inputIndex}`;
+            const newRow = document.createElement('div');
+            newRow.classList.add('query-row');
+            const label = document.createElement('label');
+            label.setAttribute('for', inputId);
+            label.textContent = 'Query:';
+            newRow.appendChild(label);
+            const input = document.createElement('input');
+            input.setAttribute('id', inputId);
+            input.classList.add('query-input');
+            input.setAttribute('type', 'text');
+            input.addEventListener('input', handleQueryInput);
+            newRow.appendChild(input);
+            return newRow;
+        }
+    </script>
+</body>
+</html>

@@ -43,6 +43,8 @@
         function myFunction() {
             const urlParams = new URLSearchParams(window.location.search);
             const competitionId = urlParams.get('id');
+            const accessToken = urlParams.get('access_token');
+            console.log("here AT is " + accessToken);
             console.log("id is " + competitionId);
             fetch("/v1/competitions/overview/" + competitionId)
                 .then(response => response.json())

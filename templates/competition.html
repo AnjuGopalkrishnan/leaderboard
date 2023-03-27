@@ -9,27 +9,44 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
     <title>Competition Page List</title>
+
+
+    <style>
+
+
+        /* Custom CSS for competition tiles */
+        .competition-tile {
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            font-size: 16px;
+            margin: auto;
+            cursor: pointer;
+            font-family: Arial;
+        }
+
+    </style>
 </head>
-
-<style>
-
-
-    /* Custom CSS for competition tiles */
-    .competition-tile {
-        margin-bottom: 10px;
-        border: none;
-        border-radius: 10px;
-        padding: 10px;
-        background-color: #f8f9fa;
-    }
-
-</style>
 <body>
 
     <div class="container">
         <h1 class="my-4" align="center">Competitions</h1>
 
-        <p align="center">Grow your SQL skills by competing in our exciting competitions</p>
+        <p align="center" style="font-family: Arial, sans-serif;">Grow your SQL skills by competing in our exciting competitions</p>
+        <button class="button" onclick="redirect()">Host a competition </button>
+
         <img src="static\img\landing_header.png" alt="your image" align="right">
 
         <br />
@@ -59,9 +76,16 @@
 
 
     <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessToken = urlParams.get('access_token');
+        console.log("here AT is " + accessToken);
+
+        function redirect() {
+            window.location.href = "hostcompetition.html?access_token=" + accessToken;
+        }
+
         $(document).ready(function () {
             // Make Fetch API call to fetch competition data
-            console.log("here");
             fetch("/v1/competitions")
                 .then(response => response.json())
                 .then(data => {
@@ -91,7 +115,7 @@
                 var competitionId = $(this).attr("data-id");
                 console.log("comp id ");
                 console.log(competitionId);
-                window.location.href = 'onecompetition.html?id=' + competitionId;
+                window.location.href = 'onecompetition.html?id=' + competitionId + '&access_token=' + accessToken;
 
             });
         });

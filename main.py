@@ -43,6 +43,11 @@ def home(request: Request):
 def home(request: Request):
     return templates.TemplateResponse("onecompetition.html", {"request": request})
 
+
+@app.get("/hostcompetition.html")
+def home(request: Request):
+    return templates.TemplateResponse("hostcompetition.html", {"request": request})
+
 @app.post("/v1/user/register")
 def register(user: models.User, db: Session = Depends(infra.db.get_db)):
     hashPwd = lib.authenticate.get_password_hash(user.password)
