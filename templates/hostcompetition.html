@@ -167,7 +167,7 @@
                 <div class="form-field" id="query-container">
                     <div class="query-row">
                         <label for="query-input-0">Query:</label>
-                        <input id="query-input-0" class="query-input" type="text"  style="width: 100%;" required>
+                        <textarea id="query-input-0" class="query-input" name="query" required></textarea>
                     </div>
                     <button type="button" id="next-btn">Next Query</button>
                 </div>
@@ -230,10 +230,9 @@
             label.setAttribute('for', inputId);
             label.textContent = 'Query:';
             newRow.appendChild(label);
-            const input = document.createElement('input');
+            const input = document.createElement('textarea');
             input.setAttribute('id', inputId);
             input.classList.add('query-input');
-            input.setAttribute('type', 'text');
             input.addEventListener('input', handleQueryInput);
             newRow.appendChild(input);
             return newRow;
