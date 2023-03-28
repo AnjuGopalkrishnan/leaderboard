@@ -1,3 +1,4 @@
+from fastapi import UploadFile, File, Form
 from pydantic import BaseModel, Field
 
 
@@ -6,12 +7,13 @@ class User(BaseModel):
     username: str
 
 
-class Competitions(BaseModel):
-    title: str
-    description: str
-    schema_file: str = Field(..., alias="schema")
-    solution: str
-    host_user_id: int
+class FormSchema(BaseModel):
+    title: str = Form(...)
+    hostUserId: str = Form(...)
+    description: str = Form(...)
+    queryType: str = Form(...)
+    schemaFile: UploadFile = File(...)
+    solution: UploadFile = File(...)
 
 
 class Submission(BaseModel):
