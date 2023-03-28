@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi import Request
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import text
+from sqlalchemy import text, create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from starlette.templating import Jinja2Templates
@@ -83,7 +83,7 @@ def login(user: models.User):
             detail="Incorrect username or password",
         )
     
-    if not lib.authenticate.verify_password(user.password, row[2]):
+    if not lib.authenticate.verify_(user.password, row[2]):
             raise HTTPException(
                 status_code=401,
                 detail="Incorrect username or password",
@@ -209,3 +209,29 @@ def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db))
 #     db.commit()
 #     db.refresh(submission)
 #     return {"submission_id": submission.c_id, "user_id": submission.user_id, "c_id": submission.c_id}
+
+
+@app.post("/v1/evaluations/competition/{id}")
+def create_competition_database_schema(id: int, db: Session = Depends(infra.db.get_db)):
+    engine = create_engine("postgresql://postgres:admin@localhost:5432")
+    conn = engine.connect()
+    dbname = "c"+str(id)
+    with engine.connect() as con:
+        query = "create database "+dbname+";"
+        con.execute(text("commit"))
+        con.execute(text(query))
+        con.close()
+    conn.close()
+
+    # Fetch file path from DB - remove if not required
+    schema_file_path = db.query(infra.db.Competitions.schema).filter(infra.db.Competitions.c_id == id).scalar()
+    #schema_file_path = "create_submissions_table.sql"
+
+    # Run the schema on created DB for competition
+    c_engine = create_engine('postgresql://postgres:admin@localhost:5432/'+dbname, echo=True)
+    connection = engine.connect()
+    with c_engine.begin() as conn:
+        with open(schema_file_path) as file:
+            query = text(file.read())
+            conn.execute(query)
+    connection.close()
