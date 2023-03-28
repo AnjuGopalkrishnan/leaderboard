@@ -31,6 +31,7 @@ competitions = Table(
     'competitions', metadata,
     Column('c_id', Integer, primary_key=True),
     Column('title', String),
+    Column('query_type', String),
     Column('description', String),
     Column('schema', String),
     Column('solution', String),
