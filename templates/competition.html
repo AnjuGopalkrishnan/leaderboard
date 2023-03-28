@@ -18,23 +18,32 @@
         .competition-tile {
             margin-bottom: 10px;
             border: none;
-            border-radius: 10px;
+            border-radius: 20px;
             padding: 10px;
             background-color: #f8f9fa;
         }
 
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+        }
+
+
         .button {
-            background-color: #4CAF50;
+            background-color: #000000;
             border: none;
             color: white;
-            padding: 15px 32px;
-            text-align: center;
+            padding: 15px 20px;
             text-decoration: none;
             display: block;
             font-size: 16px;
-            margin: auto;
-            cursor: pointer;
             font-family: Arial;
+            cursor: pointer;
+            border-radius: 20px; /* added property */
         }
 
     </style>
@@ -42,12 +51,23 @@
 <body>
 
     <div class="container">
-        <h1 class="my-4" align="center">Competitions</h1>
+        <img src="static\img\landing_header.png" alt="your image" align="right" />
 
-        <p align="center" style="font-family: Arial, sans-serif;">Grow your SQL skills by competing in our exciting competitions</p>
+        <h1 class="my-4">Competitions</h1>
+
+        <p style="font-family: Arial, sans-serif;">Grow your SQL skills by competing in our exciting competitions</p>
         <button class="button" onclick="redirect()">Host a competition </button>
+        <br />
+        <br />
 
-        <img src="static\img\landing_header.png" alt="your image" align="right">
+        <div>
+            <input type="text" class="form-field" id="searchBox" style="width: 75%;" placeholder="Search competitions">
+            <button class="button" onclick="search()">Search</button>
+        </div>
+
+        <div id="error-message" style="display: none; color: red;">
+            No comptetitions with the given Title!
+        </div>
 
         <br />
         <br />
@@ -79,6 +99,48 @@
         const urlParams = new URLSearchParams(window.location.search);
         const accessToken = urlParams.get('access_token');
         console.log("here AT is " + accessToken);
+
+        function search() {
+            var searchTerm = document.getElementById("searchBox").value;
+            console.log("Search term entered: " + searchTerm);
+
+
+            if (searchTerm !== '') {
+                console.log("Inside here");
+                fetch("/v1/competitions/" + searchTerm)
+                    .then(response => {
+                        if (!response.ok) {
+                            var errorMessage = document.getElementById('error-message');
+                            errorMessage.style.display = 'block';
+                            throw new Error('API call failed');
+                        }
+                        // Process the response
+                        return response.json();
+                    })
+                    .then(competition => {
+                        var errorMessage = document.getElementById('error-message');
+                        errorMessage.style.display = 'none';
+                        // Iterate over each competition and add it to the list
+                        var competitionItem = $('<div class="col-lg-4 col-md-6 mb-4">')
+                            .addClass("list-group-item list-group-item-action competition-tile") // add the competition-tile class
+                            .append($('<div class="card h-100">')
+                                .append($('<div class="card-body">')
+                                    .append($('<h4 class="card-title">')
+                                        .text(competition.title))
+                                    //.append($('<p class="card-text">')
+                                    //    .text(competition.description))
+                                    .append($('<a href="#" class="btn btn-primary">')
+                                        .text('Learn More')
+                                        .attr("data-id", competition.c_id))));
+                        console.log(competitionItem);
+                        document.getElementById('competition-list').innerHTML = "";
+                        $("#competition-list").append(competitionItem);
+                    })
+                    .catch(error => console.log("Error fetching competition data: ", error));
+
+            }
+            // Do something with the search term, like send it to a server or search a database
+        }
 
         function redirect() {
             window.location.href = "hostcompetition.html?access_token=" + accessToken;
