@@ -25,4 +25,4 @@ uvicorn==0.21.1
 passlib
 bcrypt
 sqlalchemy-utils
-
+python-multipart
