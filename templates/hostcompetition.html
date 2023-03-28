@@ -30,6 +30,13 @@
         color: #333; /* Change text color */
         text-align: justify; /* Justify the text for better alignment */
     }
+
+    .form-submit {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+
+    }
     .form-field {
         display: flex;
         flex-direction: column;
@@ -145,98 +152,88 @@
 
                 You bring the problem and the data, and Kaggle brings the platform.
             </p>
-            <h2>
-                Basic Setup
-            </h2>
-            <form>
-                <div class="form-field">
-                    <label for="title">Title:</label>
-                    <input type="text" id="title" name="title" required>
-                </div>
-
-                <div class="form-field">
-                    <label for="description">Description:</label>
-                    <textarea id="description" name="description" required></textarea>
-                </div>
-
-                <div class="form-field">
-                    <label for="file">Schema File:</label>
-                    <input type="file" id="schemaFile" name="file" required>
-                </div>
-
-                <div class="form-field" id="query-container">
-                    <div class="query-row">
-                        <label for="query-input-0">Query:</label>
-                        <textarea id="query-input-0" class="query-input" name="query" required></textarea>
+            <form id="form">
+                <fieldset>
+                    <legend>Competition Details</legend>
+                    <div class="form-field">
+                        <label for="title">Title:</label>
+                        <input type="text" id="title" name="title" required>
                     </div>
-                    <button type="button" id="next-btn">Next Query</button>
-                </div>
 
-                <div class="form-field">
-                    <button type="submit" id="submit-btn" name="Submit">Submit</button>
-                </div>
+                    <div class="form-field">
+                        <label for="description">Description:</label>
+                        <textarea id="description" name="description" required></textarea>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="file">Schema File:</label>
+                        <input type="file" id="schemaFile" name="file" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="radio options">Query Type:</label>
+                        <label>
+                            <input type="radio" name="queryType" value=0 checked>
+                            Fastest Query
+                        </label>
+                        <label>
+                            <input type="radio" name="queryType" value=1>
+                            Slowest Query
+                        </label>
+                    </div>
+
+
+                    <div class="form-field" id="query-container">
+                        <div class="query-row">
+                            <label for="query-input-0">Query:</label>
+                            <textarea id="query-input" class="query-input" name="query" required></textarea>
+                        </div>
+                    </div>
+
+
+                    <div class="form-field">
+                        <label for="file">Expected Solution:</label>
+                        <input type="file" id="solution" name="file" required>
+                    </div>
+
+
+                    <div class="form-submit">
+                        <button type="submit" id="submit-btn" name="Submit">Submit</button>
+                    </div>
+                </fieldset>
             </form>
         </div>
         </div>
     <script>
-        const queryContainer = document.getElementById('query-container');
-        const nextBtn = document.getElementById('next-btn');
-        const submitBtn = document.getElementById('submit-btn');
-        let queries = [''];
+        function handleSubmit(event) {
 
-        nextBtn.addEventListener('click', () => {
-            const lastInput = queryContainer.querySelector('.query-input:last-of-type');
-            if (lastInput.value !== '') {
-                const newInput = createQueryInput();
-                queries.push('');
-                if (newInput === queryContainer.querySelector('.query-input:last-of-type')) {
-                    submitBtn.click();
-                } else {
-                    queryContainer.insertBefore(newInput, nextBtn);
-                    lastInput.removeEventListener('input', handleQueryInput);
-                }
-            }
-        });
 
-        submitBtn.addEventListener('click', () => {
-            const lastInput = queryContainer.querySelector('.query-input:last-of-type');
-            if (lastInput.value !== '') {
-                queries.push('');
-            }
+            //const inputForm = document.getElementById("form");
 
-            if (lastInput.value !== '') {
-                if (!queries.includes(lastInput.value)) {
-                    queries[queries.length - 1] = lastInput.value;
-                }
-            }
-            const queriesupdated = queries.filter(item => item !== '');
-            //Check for all reqd fields
-            if (document.getElementById("schemaFile").value != "") {
-                console.log(queriesupdated);
-            }
-        });
+            event.preventDefault();
+            console.log("Here");
+            const titleInput = document.getElementById('title');
+            const descriptionInput = document.getElementById('description');
+            const queryInput = document.getElementById('query-input');
+            const selectedValue = document.querySelector('input[name="queryType"]:checked');
+            const scheme = document.getElementById('schemaFile').files[0];
+            const solution = document.getElementById('solution').files[0];
 
-        function handleQueryInput(e) {
-            const inputIndex = Array.from(queryContainer.querySelectorAll('.query-input')).indexOf(e.target);
-            queries[inputIndex] = e.target.value;
+
+
+            //const form = new FormData(inputForm);
+
+            const formData = new FormData();
+            formData.append('title', titleInput.value);
+            formData.append('description', descriptionInput.value);
+            formData.append('queryType', selectedValue.value);
+            formData.append('schemaFile', scheme);
+            formData.append('solution', solution);
+            //console.log(titleInput.value + " " + descriptionInput.value + " " + selectedValue + " " + document.getElementById('schemaFile').files[0]);
         }
 
-        function createQueryInput() {
-            const inputIndex = queries.length - 1;
-            const inputId = `query-input-${inputIndex}`;
-            const newRow = document.createElement('div');
-            newRow.classList.add('query-row');
-            const label = document.createElement('label');
-            label.setAttribute('for', inputId);
-            label.textContent = 'Query:';
-            newRow.appendChild(label);
-            const input = document.createElement('textarea');
-            input.setAttribute('id', inputId);
-            input.classList.add('query-input');
-            input.addEventListener('input', handleQueryInput);
-            newRow.appendChild(input);
-            return newRow;
-        }
+        const form = document.querySelector('form');
+        form.addEventListener('submit', handleSubmit);
     </script>
 </body>
 </html>
