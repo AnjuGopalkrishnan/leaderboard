@@ -225,11 +225,23 @@
 
             const formData = new FormData();
             formData.append('title', titleInput.value);
+            formData.append('hostUserId', 9);
             formData.append('description', descriptionInput.value);
             formData.append('queryType', selectedValue.value);
             formData.append('schemaFile', scheme);
             formData.append('solution', solution);
-            //console.log(titleInput.value + " " + descriptionInput.value + " " + selectedValue + " " + document.getElementById('schemaFile').files[0]);
+            fetch('/v1/competitions', {
+                method: 'POST',
+                body: formData
+             }).then(response => {
+                                              if (!response.ok) {
+                                                  throw new Error(`HTTP error! status: ${response.status}`);
+                                              }
+                                              return response.json();
+                                          })
+                                          .then(data => {
+                                              console.log(data);});
+
         }
 
         const form = document.querySelector('form');
