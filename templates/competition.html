@@ -34,6 +34,7 @@
 
 
         .button {
+            width: 175px;
             background-color: #000000;
             border: none;
             color: white;
@@ -46,6 +47,11 @@
             border-radius: 20px; /* added property */
         }
 
+        .button-container {
+            display: flex;
+            gap: 10px; /* Adjust the gap between buttons as needed */
+        }
+
     </style>
 </head>
 <body>
@@ -56,7 +62,11 @@
         <h1 class="my-4">Competitions</h1>
 
         <p style="font-family: Arial, sans-serif;">Grow your SQL skills by competing in our exciting competitions</p>
-        <button class="button" onclick="redirect()">Host a competition </button>
+        <div class="button-container">
+            <button class="button" onclick="redirect()">Host a competition</button>
+            <button class="button" onclick="hostList()">My competitions</button>
+
+        </div>
         <br />
         <br />
 
@@ -79,13 +89,14 @@
 
         <div>
             <img src="static\img\clock.png" alt="your image" align="left" width="30" height="30">
-            <h4>&nbsp; &nbsp; Active Competitions</h4>
+            <h4 id="competion_title"> Active Competitions</h4>
             <br />
         </div>
 
         <div class="row" id="competition-list">
             <!-- Card elements will be dynamically added here -->
         </div>
+        <button class="button" onclick="reset()">Reset</button>
 
     </div>
 
@@ -99,6 +110,64 @@
         const urlParams = new URLSearchParams(window.location.search);
         const accessToken = urlParams.get('access_token');
         console.log("here AT is " + accessToken);
+        const userId = 1;
+        function hostList() {
+
+            fetch("/v1/user/"+2+"/hosted")
+                .then(response => response.json())
+                .then(data => {
+                    // Iterate over each competition and add it to the list
+                    //console.log(data);
+                    document.getElementById('competition-list').innerHTML = "";
+                    document.getElementById('competion_title').innerHTML = "My competions";
+                    data.forEach(function (competition) {
+                        var competitionItem = $('<div class="col-lg-4 col-md-6 mb-4">')
+                            .addClass("list-group-item list-group-item-action competition-tile") // add the competition-tile class
+                            .append($('<div class="card h-100">')
+                                .append($('<div class="card-body">')
+                                    .append($('<h4 class="card-title">')
+                                        .text(competition.title))
+                                    //.append($('<p class="card-text">')
+                                    //    .text(competition.description))
+                                    .append($('<a href="#" class="btn btn-primary">')
+                                        .text('Learn More')
+                                        .attr("data-id", competition.c_id))));
+                        $("#competition-list").append(competitionItem);
+                    });
+                })
+                .catch(error => console.log("Error fetching competition data: ", error));
+
+        }
+
+        function reset() {
+
+            fetch("/v1/competitions")
+                .then(response => response.json())
+                .then(data => {
+                    // Iterate over each competition and add it to the list
+                    //console.log(data);
+                    document.getElementById('competition-list').innerHTML = "";
+                    document.getElementById('competion_title').innerHTML = "Active Competitions";
+                    var myTextbox = document.getElementById("searchBox").innerHTML="";
+                    data.forEach(function (competition) {
+                        var competitionItem = $('<div class="col-lg-4 col-md-6 mb-4">')
+                            .addClass("list-group-item list-group-item-action competition-tile") // add the competition-tile class
+                            .append($('<div class="card h-100">')
+                                .append($('<div class="card-body">')
+                                    .append($('<h4 class="card-title">')
+                                        .text(competition.title))
+                                    //.append($('<p class="card-text">')
+                                    //    .text(competition.description))
+                                    .append($('<a href="#" class="btn btn-primary">')
+                                        .text('Learn More')
+                                        .attr("data-id", competition.c_id))));
+                        $("#competition-list").append(competitionItem);
+                    });
+                })
+                .catch(error => console.log("Error fetching competition data: ", error));
+
+        }
+
 
         function search() {
             var searchTerm = document.getElementById("searchBox").value;
@@ -106,7 +175,6 @@
 
 
             if (searchTerm !== '') {
-                console.log("Inside here");
                 fetch("/v1/competitions/" + searchTerm)
                     .then(response => {
                         if (!response.ok) {
@@ -118,6 +186,7 @@
                         return response.json();
                     })
                     .then(competition => {
+                        document.getElementById('competion_title').innerHTML = "Search Results";
                         var errorMessage = document.getElementById('error-message');
                         errorMessage.style.display = 'none';
                         // Iterate over each competition and add it to the list
@@ -132,7 +201,6 @@
                                     .append($('<a href="#" class="btn btn-primary">')
                                         .text('Learn More')
                                         .attr("data-id", competition.c_id))));
-                        console.log(competitionItem);
                         document.getElementById('competition-list').innerHTML = "";
                         $("#competition-list").append(competitionItem);
                     })

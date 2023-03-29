@@ -162,7 +162,7 @@
             width: 100%;
         }
 
-        #next-btn, #submit-btn {
+        #next-btn, #submit-btn, #redirect-btn {
             margin-top: 10px;
             padding: 10px 20px;
             font-size: 16px;
@@ -194,44 +194,56 @@
                 <button type="submit" id="submit-btn" name="Submit">Submit</button>
             </div>
         </form>
-    </div>
+        <div class="form-submit">
+            <button id="redirect-btn" onclick="window.location.href = 'competition.html';">Back</button>
+        </div>
+            <div id="error-message" style="display: none; color: red;">
+                Host cannot make submissions for their competition
+            </div>
+        </div>
 
-    <script>
-        function myFunction() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const competitionId = urlParams.get('id');
-            const accessToken = urlParams.get('access_token');
-            console.log("here AT is " + accessToken);
-            console.log("id is " + competitionId);
-            fetch("/v1/competitions/overview/" + competitionId)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("header").innerHTML = data.title;
-                    document.getElementById("para").innerHTML = data.description;
-                });
-        }
+        <script>
+            function myFunction() {
+                var userId = 1;
+                const urlParams = new URLSearchParams(window.location.search);
+                const competitionId = urlParams.get('id');
+                const accessToken = urlParams.get('access_token');
+                console.log("here AT is " + accessToken);
+                console.log("id is " + competitionId);
+                fetch("/v1/competitions/overview/" + competitionId)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (userId == data.host_user_id) {
+                            document.getElementById("submission").disabled = true;
+                            document.getElementById("submit-btn").disabled = true;
+                            document.getElementById("error-message").style.display = 'block';
+                        }
+                        document.getElementById("header").innerHTML = data.title;
+                        document.getElementById("para").innerHTML = data.description;
+                    });
+            }
 
 
-        function handleSubmit(event) {
+            function handleSubmit(event) {
 
 
-            //const inputForm = document.getElementById("form");
+                //const inputForm = document.getElementById("form");
 
-            event.preventDefault();
-            console.log("Here");
-            const submission = document.getElementById('submission').files[0];
+                event.preventDefault();
+                console.log("Here");
+                const submission = document.getElementById('submission').files[0];
 
 
 
-            //const form = new FormData(inputForm);
+                //const form = new FormData(inputForm);
 
-            const formData = new FormData();
-            formData.append('submission', submission);
-            //console.log(titleInput.value + " " + descriptionInput.value + " " + selectedValue + " " + document.getElementById('schemaFile').files[0]);
-        }
+                const formData = new FormData();
+                formData.append('submission', submission);
+                //console.log(titleInput.value + " " + descriptionInput.value + " " + selectedValue + " " + document.getElementById('schemaFile').files[0]);
+            }
 
-        const form = document.querySelector('form');
-        form.addEventListener('submit', handleSubmit);
-    </script>
+            const form = document.querySelector('form');
+            form.addEventListener('submit', handleSubmit);
+        </script>
 </body>
 </html>

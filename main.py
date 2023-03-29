@@ -181,7 +181,7 @@ def create_competition(title: str = Form(...),
     current_comp_id = len(db.query(infra.db.Competitions).all()) + 1
     dbname = "c" + str(current_comp_id)
 
-    c_engine = create_engine("postgresql://testuser:testuser@localhost:5432/" + dbname, isolation_level="AUTOCOMMIT")
+    c_engine = create_engine("postgresql://postgres@localhost:5432/" + dbname, isolation_level="AUTOCOMMIT")
     if not database_exists(c_engine.url):
         create_database(c_engine.url)
 
