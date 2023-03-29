@@ -14,7 +14,7 @@ import infra.db
 import lib.authenticate
 from infra import models
 from infra.db import User
-from lib import jwt
+from lib import jwt,metricCal
 
 templates = Jinja2Templates(directory="templates")
 
@@ -248,3 +248,8 @@ def get_leaderboard_user_details(user_id: int, db: Session = Depends(infra.db.ge
 @app.get("/v1/competitions/{id}/download")
 def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db)):
     pass
+
+@app.get("/v1/queryMetrics")
+def test():
+    query = "select * from users"
+    return lib.metricCal.get_query_complexity(query)
