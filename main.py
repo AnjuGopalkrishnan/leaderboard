@@ -2,6 +2,7 @@ import os.path
 from datetime import datetime
 
 from fastapi import FastAPI, HTTPException, Depends, Form, UploadFile, File
+from fastapi.responses import StreamingResponse
 from fastapi import Request
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text, create_engine
@@ -224,6 +225,7 @@ def get_competition_details(id: int, db: Session = Depends(infra.db.get_db)):
     competition_dict = {
         "title": competition.title,
         "description": competition.description,
+        "host_user_id": competition.host_user_id,
     }
 
     return competition_dict
@@ -247,4 +249,10 @@ def get_leaderboard_user_details(user_id: int, db: Session = Depends(infra.db.ge
 
 @app.get("/v1/competitions/{id}/download")
 def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db)):
-    pass
+    try:
+        with open(os.path.join(SCHEMA_PATH, str(id) + ".sql"), mode="r") as file:
+            file_data = file.read()
+            return StreamingResponse(iter(file_data), media_type="text/plain")
+
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Competition Details not found")
