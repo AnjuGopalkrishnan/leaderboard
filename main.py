@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException, Depends, Form, UploadFile, File
 from fastapi.responses import StreamingResponse
 from fastapi import Request
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import text, create_engine
+from sqlalchemy import text, create_engine, desc
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy_utils import database_exists, create_database, drop_database
@@ -268,9 +268,9 @@ def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db))
 @app.post("/v1/evaluations/competition/{c_id}/submissions/{user_id}")
 def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.get_db)):
     solution_file_path = db.query(infra.db.Competitions.solution).filter(infra.db.Competitions.c_id == c_id).scalar()
-
-    submission_file_path = db.query(infra.db.Submissions.submission).filter(infra.db.Submissions.c_id == c_id and infra.db.Submissions.user_id == user_id).order_by(infra.db.Submissions.timestamp).scalar()
-
+    submission_file_path_row = db.query(infra.db.Submissions.submission).filter(infra.db.Submissions.c_id == c_id and infra.db.Submissions.user_id == user_id).order_by(desc(infra.db.Submissions.timestamp)).first()
+    for row in submission_file_path_row:
+        submission_file_path = row
     dbname = "c"+str(c_id)
     c_engine = create_engine('postgresql://postgres:admin@localhost:5432/'+dbname, echo=True)
 
@@ -279,25 +279,6 @@ def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.
         with open(solution_file_path) as file:
             query = text(file.read())
             expected_result = conn.execute(query).all()
-            sum_plan_times = 0
-            sum_exec_times = 0
-
-            # Take avg of 5 execution performance
-            for _ in range(5):
-                analyze_result = conn.execute(text(f'EXPLAIN ANALYZE {query}'))
-                for row in analyze_result:
-                    #print("owner:",row)
-                    if("Planning Time") in str(row):
-                        expected_plan_time = float(re.findall(r'[\d]*[.][\d]+', str(row))[0])
-                        sum_plan_times = sum_plan_times + expected_plan_time
-                    if("Execution Time") in str(row):
-                        expected_exec_time = float(re.findall(r'[\d]*[.][\d]+', str(row))[0])
-                        sum_exec_times = sum_exec_times + expected_exec_time
-
-        expected_plan_time = sum_plan_times / 5
-        expected_exec_time = sum_exec_times / 5
-        print("owner expected_plan_time:",expected_plan_time)
-        print("owner expected_exec_time:",expected_exec_time)
 
         sum_plan_times = 0
         sum_exec_times = 0
@@ -327,30 +308,27 @@ def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.
     score = 0
     # Compare results
     if(user_result == expected_result):
-        score = 1
+        score = score + 1
 
     # Further checks only if results match
     if(score == 1):
-        if(user_plan_time <= expected_plan_time):
-            score = score + 1
-        if(user_exec_time <= expected_exec_time):
-            score = score + 1
-        total_time = user_plan_time + user_exec_time
-        if(total_time <= expected_plan_time+expected_exec_time):
-            score = score + 2
+        max_time = 10
+        pt = max_time - user_plan_time
+        et = max_time - user_exec_time
+        tt = max_time - (user_plan_time + user_exec_time)
+        score = score+pt+et+tt
+    
+    # update submission tables
 
-    # run multiple times and take avg ? range for expected?
+    x = db.query(infra.db.Submissions).\
+        filter(infra.db.Submissions.c_id == c_id, 
+               infra.db.Submissions.user_id == user_id).\
+        order_by(desc(infra.db.Submissions.timestamp)).\
+        first()
 
-    # update submission and leaderboard tables
-    x = db.query(infra.db.Submissions).filter(infra.db.Submissions.c_id == c_id and infra.db.Submissions.user_id == user_id)
-    x.update({infra.db.Submissions.planning_time:user_plan_time,
-              infra.db.Submissions.execution_time:user_exec_time,
-              infra.db.Submissions.total_time:total_time,
-              infra.db.Submissions.score:score}, synchronize_session = False)
-
-    db.commit()
-
-    # TODO ? insert users' best score to the leaderboard
+    if x:
+        x.score = score
+        db.commit()
 
     # TODO changes for slowest - query_type
 
