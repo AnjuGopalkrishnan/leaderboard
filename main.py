@@ -3,13 +3,14 @@ from datetime import datetime
 
 from fastapi import FastAPI, HTTPException, Depends, Form, UploadFile, File
 from fastapi import Request
+from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text, create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy_utils import database_exists, create_database, drop_database
 from starlette.templating import Jinja2Templates
-
+import typing
 import infra.db
 import lib.authenticate
 from infra import models
@@ -17,6 +18,7 @@ from infra.db import User
 from lib import jwt,metricCal
 
 templates = Jinja2Templates(directory="templates")
+
 
 SCHEMA_PATH = "schemas"
 ANS_PATH = "answers"
@@ -29,6 +31,7 @@ if not os.path.exists(ANS_PATH):
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/user/login")
 
 
 @app.get("/")
@@ -96,14 +99,14 @@ def login(user: models.User):
             detail="Incorrect username or password",
         )
 
-    if not lib.authenticate.verify_password(user.password, row[2]):
+    if not lib.authenticate.verify_password(user.password, row[1]):
         raise HTTPException(
             status_code=401,
             detail="Incorrect username or password",
         )
     #    print("user is ", user)
     access_token = jwt.create_access_token(payload={"username": user.username})
-    return {"access_token": access_token}
+    return {"access_token": access_token,"token_type":"bearer"}
 
 
 @app.get("/v1/user/{id}/hosted")
@@ -250,6 +253,7 @@ def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db))
     pass
 
 @app.get("/v1/queryMetrics")
-def test():
+def test(current_user: infra.db.User = Depends(jwt.get_current_user)):
     query = "select * from users"
-    return lib.metricCal.get_query_complexity(query)
+    print(current_user)
+    return lib.metricCal.get_query_score(query)
