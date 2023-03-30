@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaderboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 0 auto;
+            margin-top: 50px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th {
+            background-color: #eee;
+            color: #333;
+            font-weight: bold;
+            padding: 10px;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .rank {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .name {
+            color: #777;
+        }
+
+        .score {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .first {
+            background-color: #ffd700;
+        }
+
+        .second {
+            background-color: #c0c0c0;
+        }
+
+        .third {
+            background-color: #c1c1c1;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Leaderboard</h1>
+    <table id="leaderboard-table">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+        </tbody>
+    </table>
+    <button class ="back-button" id="back-button">Back</button>
+
+    <script>
+        const apiUrl = "https://example.com/leaderboard";
+
+        // Function to populate the leaderboard table with data from the API response
+        const populateLeaderboard = (data) => {
+            const leaderboardBody = document.getElementById("leaderboard-body");
+            // Clear any existing rows in the table body
+            leaderboardBody.innerHTML = "";
+            // Iterate over the data and create a row for each leaderboard entry
+            data.forEach((entry, index) => {
+                const row = document.createElement("tr");
+                const rank = document.createElement("td");
+                const name = document.createElement("td");
+                const score = document.createElement("td");
+                rank.innerText = index + 1;
+                name.innerText = entry.name;
+                score.innerText = entry.score;
+                row.appendChild(rank);
+                row.appendChild(name);
+                row.appendChild(score);
+                leaderboardBody.appendChild(row);
+            });
+        };
+
+        // Function to handle errors in the API response
+        const handleApiError = (error) => {
+            console.error(error);
+        };
+
+        // Make the API call and populate the leaderboard on page load
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => populateLeaderboard(data))
+            .catch(error => handleApiError(error));
+
+        // Add event listener to back button to go back to previous page
+        const backButton = document.getElementById("back-button");
+        backButton.addEventListener("click", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const accessToken = urlParams.get('access_token');
+            window.location.href = "competition.html?access_token=" + accessToken;
+        });
+    </script>
+
+</body>
+</html>

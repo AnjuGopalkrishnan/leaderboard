@@ -58,6 +58,10 @@ def home(request: Request):
     return templates.TemplateResponse("onecompetition.html", {"request": request})
 
 
+@app.get("/leaderboard.html")
+def home(request: Request):
+    return templates.TemplateResponse("leaderboard.html", {"request": request})
+
 @app.get("/hostcompetition.html")
 def home(request: Request):
     return templates.TemplateResponse("hostcompetition.html", {"request": request})
@@ -250,9 +254,11 @@ def get_leaderboard_user_details(user_id: int, db: Session = Depends(infra.db.ge
 
 @app.get("/v1/competitions/{id}/download")
 def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db)):
+    print("Inside fn ")
     try:
-        with open(os.path.join(SCHEMA_PATH, str(id) + ".sql"), mode="r") as file:
+        with open(os.path.join(SCHEMA_PATH, "c" + str(id) + ".sql"), mode="r") as file:
             file_data = file.read()
+            print("File data is "+ file_data)
             return StreamingResponse(iter(file_data), media_type="text/plain")
 
     except Exception as e:

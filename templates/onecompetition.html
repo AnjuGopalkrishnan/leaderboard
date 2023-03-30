@@ -131,6 +131,9 @@
             background-color: #000000;
             color: #fff;
             border: none;
+            font-size: 16px;
+            font-family: Arial;
+            width: 175px;
             border-radius: 3px;
             padding: 5px 10px;
         }
@@ -162,19 +165,44 @@
             width: 100%;
         }
 
+        .button-container {
+            justify-content: center;
+            align-items: center;
+            display: flex;
+            gap: 10px; /* Adjust the gap between buttons as needed */
+        }
+
         #next-btn, #submit-btn, #redirect-btn {
+            width: 175px;
             margin-top: 10px;
-            padding: 10px 20px;
+            padding: 15px 20px;
             font-size: 16px;
             border-radius: 4px;
+            font-size: 16px;
+            font-family: Arial;
+            cursor: pointer;
+            border-radius: 20px;
             border: none;
             background-color: #000000;
             color: white;
+            border-radius: 20px; /* added property */
         }
 
             #next-btn:hover, #submit-btn:hover {
                 background-color: #3e8e41;
             }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
 
     </style>
 </head>
@@ -183,28 +211,50 @@
         <h2 id="header"></h2>
         <h3>Problem Description</h3>
         <p id="para"></p>
+        <h3>Database Schema</h3>
+        <button type="submit" id="submit" onclick="downloadFile()">Download File</button>
         <h3>Submission</h3>
-        <form>
-            <div class="form-field">
-                <label for="file">Solution File:</label>
-                <input type="file" id="submission" name="file" required>
-            </div>
+        <div class="form-field">
+            <label for="file">Solution File:</label>
+            <input type="file" id="submission" name="file" required>
+        </div>
 
-            <div class="form-submit">
-                <button type="submit" id="submit-btn" name="Submit">Submit</button>
-            </div>
-        </form>
-        <div class="form-submit">
-            <button id="redirect-btn" onclick="window.location.href = 'competition.html';">Back</button>
+
+
+
+        <div class="button-container">
+            <button type="submit" id="submit" name="Submit">Make Submission</button>
+            <button type="submit" id="submit" onclick="leaderBoard()">Leaderboard</button>
         </div>
-            <div id="error-message" style="display: none; color: red;">
-                Host cannot make submissions for their competition
-            </div>
+
+
+        <button class="back-button" id="back-button">Back</button>
+
+        <div id="error-message" style="display: none; color: red;">
+            Host cannot make submissions for their competition
         </div>
+    </div>
 
         <script>
+
+            function leaderBoard() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const accessToken = urlParams.get('access_token');
+                window.location.href = "leaderboard.html?access_token=" + accessToken;
+            }
+
+
+
+            function redirect() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const accessToken = urlParams.get('access_token');
+                window.location.href = "competition.html?access_token=" + accessToken;
+            }
+
+
             function myFunction() {
-                var userId = 1;
+                var userId = 2;
+                console.log(window.location.href);
                 const urlParams = new URLSearchParams(window.location.search);
                 const competitionId = urlParams.get('id');
                 const accessToken = urlParams.get('access_token');
@@ -221,6 +271,25 @@
                         document.getElementById("header").innerHTML = data.title;
                         document.getElementById("para").innerHTML = data.description;
                     });
+            }
+
+
+            function downloadFile() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const competitionId = urlParams.get('id');
+                fetch("/v1/competitions/" + competitionId + "/download")
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.download = 'schema.sql';
+                        a.href = url;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                    })
+                    .catch(error => console.error(error));
             }
 
 
