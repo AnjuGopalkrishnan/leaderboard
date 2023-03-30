@@ -109,9 +109,9 @@ def login(user: models.User):
     return {"access_token": access_token,"token_type":"bearer"}
 
 
-@app.get("/v1/user/{id}/hosted")
-def hosted(id):
-    query = infra.db.competitions.select().where(infra.db.competitions.c.host_user_id == id)
+@app.get("/v1/user/hosted")
+def hosted(current_user: infra.db.User = Depends(jwt.get_current_user)):
+    query = infra.db.competitions.select().where(infra.db.competitions.c.host_user_id == current_user.user_id)
     with infra.db.engine.begin() as conn:
         res = conn.execute(query)
 
@@ -126,8 +126,8 @@ def hosted(id):
 
 
 @app.get("/v1/user/{id}/competitions")
-def getcompetitions(id):
-    query = infra.db.submissions.select().where(infra.db.submissions.c.user_id == id)
+def getcompetitions(current_user: infra.db.User = Depends(jwt.get_current_user)):
+    query = infra.db.submissions.select().where(infra.db.submissions.c.user_id == current_user.user_id)
     with infra.db.engine.begin() as conn:
         res = conn.execute(query)
 
@@ -158,7 +158,7 @@ def get_competitions(skip: int = 0, limit: int = None, db: Session = Depends(inf
 
 
 @app.get("/v1/competitions/{name}")
-def search_competition(name: str, db: Session = Depends(infra.db.get_db)):
+def search_competition(name: str, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     competition = db.query(infra.db.Competitions).filter(infra.db.Competitions.title == name).first()
     if not competition:
         raise HTTPException(status_code=404, detail="Competition not found")
@@ -170,7 +170,7 @@ def create_competition(title: str = Form(...),
                        description: str = Form(...),
                        queryType: str = Form(...),
                        schemaFile: UploadFile = File(...),
-                       solution: UploadFile = File(...), db: Session = Depends(infra.db.get_db)):
+                       solution: UploadFile = File(...), db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     cur_time = datetime.now()
     dt_string = cur_time.strftime("%d/%m/%Y %H:%M:%S")
 
@@ -219,7 +219,7 @@ def create_competition(title: str = Form(...),
 
 
 @app.get("/v1/competitions/overview/{id}")
-def get_competition_details(id: int, db: Session = Depends(infra.db.get_db)):
+def get_competition_details(id: int, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     competition = db.query(infra.db.Competitions).filter(infra.db.Competitions.c_id == id).first()
     if not competition:
         raise HTTPException(status_code=404, detail="Competition not found")
@@ -233,7 +233,7 @@ def get_competition_details(id: int, db: Session = Depends(infra.db.get_db)):
 
 
 @app.get("/v1/competitions/leaderboard/{id}")
-def get_leaderboard(id: int, db: Session = Depends(infra.db.get_db)):
+def get_leaderboard(id: int, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     leaderboard = db.query(infra.db.Leaderboard).filter(infra.db.Leaderboard.c_id == id).all()
     if not leaderboard:
         raise HTTPException(status_code=404, detail="Leaderboard not found")
@@ -241,7 +241,7 @@ def get_leaderboard(id: int, db: Session = Depends(infra.db.get_db)):
 
 
 @app.get("/v1/competitions/leaderboard/{user_id}")
-def get_leaderboard_user_details(user_id: int, db: Session = Depends(infra.db.get_db)):
+def get_leaderboard_user_details(user_id: int, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     user_submissions = db.query(infra.db.Leaderboard).filter(infra.db.Leaderboard.user_id == user_id).all()
     if not user_submissions:
         raise HTTPException(status_code=404, detail="User Details not found")
@@ -249,7 +249,7 @@ def get_leaderboard_user_details(user_id: int, db: Session = Depends(infra.db.ge
 
 
 @app.get("/v1/competitions/{id}/download")
-def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db)):
+def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     pass
 
 @app.get("/v1/queryMetrics")
