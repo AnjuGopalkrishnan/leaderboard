@@ -196,6 +196,8 @@
                         <input type="file" id="solution" name="file" required>
                     </div>
 
+                    <div id="error-message">
+                    </div>
 
                     <div class="form-submit">
                         <button type="submit" id="submit-btn" name="Submit">Submit</button>
@@ -234,14 +236,20 @@
                 method: 'POST',
                 body: formData
              }).then(response => {
-                                              if (!response.ok) {
+                 if (!response.ok) {
+                     document.getElementById("error-message").innerHTML = 'Error in SQL files uploaded, please check and re-submit';
+                     document.getElementById("error-message").style.color = "red";
                                                   throw new Error(`HTTP error! status: ${response.status}`);
                                               }
+                 document.getElementById("error-message").innerHTML = '';
                                               return response.json();
                                           })
                                           .then(data => {
                                               console.log(data);});
-
+            const urlParams = new URLSearchParams(window.location.search);
+            const accessToken = urlParams.get('access_token');
+            console.log("Here");
+            //window.location.href = "competition.html?access_token=" + accessToken;
         }
 
         const form = document.querySelector('form');
