@@ -64,7 +64,7 @@
         <p style="font-family: Arial, sans-serif;">Grow your SQL skills by competing in our exciting competitions</p>
         <div class="button-container">
             <button class="button" onclick="redirect()">Host a competition</button>
-            <button class="button" onclick="hostList()">My competitions</button>
+            <!--<button class="button" onclick="hostList()">My competitions</button> -->
 
         </div>
         <br />
@@ -111,45 +111,45 @@
         const accessToken = urlParams.get('access_token');
         console.log("here AT is " + accessToken);
         const userId = 1;
-        function hostList() {
+ //       function hostList() {
+//
+ //           fetch("/v1/user/"+1+"/hosted")
+  //              .then(response => response.json())
+ //               .then(data => {
+ //                   // Iterate over each competition and add it to the list
+ //                   //console.log(data);
+ //                   document.getElementById('competition-list').innerHTML = "";
+  //                  document.getElementById('competion_title').innerHTML = "My competions";
+ //                   data.forEach(function (competition) {
+  //                      var competitionItem = $('<div class="col-lg-4 col-md-6 mb-4">')
+ //                           .addClass("list-group-item list-group-item-action competition-tile") // add the competition-tile class
+ //                           .append($('<div class="card h-100">')
+ //                               .append($('<div class="card-body">')
+ //                                   .append($('<h4 class="card-title">')
+ //                                       .text(competition.title))
+ //                                   //.append($('<p class="card-text">')
+ //                                   //    .text(competition.description))
+ //                                   .append($('<a href="#" class="btn btn-primary">')
+ //                                       .text('Leaderboard')
+ //                                       .attr("data-id", competition.c_id))
+ //                                   .append(function () {
+ //                                       if (userId != competition.host_user_id) {
+ //                                           return $('<a href="#" class="btn btn-primary ml-2">')
+ //                                               .text('hello')
+ //                                               .attr("data-id", competition.c_id)
+ //                                               .attr("participant", 1);
+ //                                       } else {
+ //                                           return '';
+ //                                       }
+ //                                   })
+ //                               )
+ //                           );
+ //                       $("#competition-list").append(competitionItem);
+ //                   });
+ //               })
+ //               .catch(error => console.log("Error fetching competition data: ", error));
 
-            fetch("/v1/user/"+1+"/hosted")
-                .then(response => response.json())
-                .then(data => {
-                    // Iterate over each competition and add it to the list
-                    //console.log(data);
-                    document.getElementById('competition-list').innerHTML = "";
-                    document.getElementById('competion_title').innerHTML = "My competions";
-                    data.forEach(function (competition) {
-                        var competitionItem = $('<div class="col-lg-4 col-md-6 mb-4">')
-                            .addClass("list-group-item list-group-item-action competition-tile") // add the competition-tile class
-                            .append($('<div class="card h-100">')
-                                .append($('<div class="card-body">')
-                                    .append($('<h4 class="card-title">')
-                                        .text(competition.title))
-                                    //.append($('<p class="card-text">')
-                                    //    .text(competition.description))
-                                    .append($('<a href="#" class="btn btn-primary">')
-                                        .text('Leaderboard')
-                                        .attr("data-id", competition.c_id))
-                                    .append(function () {
-                                        if (userId != competition.host_user_id) {
-                                            return $('<a href="#" class="btn btn-primary ml-2">')
-                                                .text('hello')
-                                                .attr("data-id", competition.c_id)
-                                                .attr("participant", 1);
-                                        } else {
-                                            return '';
-                                        }
-                                    })
-                                )
-                            );
-                        $("#competition-list").append(competitionItem);
-                    });
-                })
-                .catch(error => console.log("Error fetching competition data: ", error));
-
-        }
+//        }
 
         function reset() {
 
