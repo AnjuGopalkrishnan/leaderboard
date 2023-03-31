@@ -6,11 +6,12 @@ from fastapi import FastAPI, HTTPException, Depends, Form, UploadFile, File
 from fastapi.responses import StreamingResponse
 from fastapi import Request
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import text, create_engine
+from sqlalchemy import text, create_engine, and_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy_utils import database_exists, create_database, drop_database
 from starlette.templating import Jinja2Templates
+from sqlalchemy import select, desc, asc, func
 
 import infra.db
 import lib.authenticate
@@ -61,6 +62,7 @@ def home(request: Request):
 @app.get("/leaderboard.html")
 def home(request: Request):
     return templates.TemplateResponse("leaderboard.html", {"request": request})
+
 
 @app.get("/hostcompetition.html")
 def home(request: Request):
@@ -167,6 +169,7 @@ def search_competition(name: str, db: Session = Depends(infra.db.get_db)):
         raise HTTPException(status_code=404, detail="Competition not found")
     return competition
 
+
 @app.post("/v1/competitions")
 def create_competition(title: str = Form(...),
                        hostUserId: str = Form(...),
@@ -236,17 +239,10 @@ def get_competition_details(id: int, db: Session = Depends(infra.db.get_db)):
     return competition_dict
 
 
-@app.get("/v1/competitions/leaderboard/{id}")
-def get_leaderboard(id: int, db: Session = Depends(infra.db.get_db)):
-    leaderboard = db.query(infra.db.Leaderboard).filter(infra.db.Leaderboard.c_id == id).all()
-    if not leaderboard:
-        raise HTTPException(status_code=404, detail="Leaderboard not found")
-    return leaderboard
-
-
-@app.get("/v1/competitions/leaderboard/{user_id}")
-def get_leaderboard_user_details(user_id: int, db: Session = Depends(infra.db.get_db)):
-    user_submissions = db.query(infra.db.Leaderboard).filter(infra.db.Leaderboard.user_id == user_id).all()
+@app.get("/v1/competitions/leaderboard/{competition_id}/{user_id}")
+def get_leaderboard_user_details(user_id: int, competition_id: int, db: Session = Depends(infra.db.get_db)):
+    user_submissions = db.query(infra.db.Submissions).filter(
+        infra.db.Submissions.user_id == user_id and infra.db.Submissions.c_id == competition_id).all()
     if not user_submissions:
         raise HTTPException(status_code=404, detail="User Details not found")
     return user_submissions
@@ -254,11 +250,9 @@ def get_leaderboard_user_details(user_id: int, db: Session = Depends(infra.db.ge
 
 @app.get("/v1/competitions/{id}/download")
 def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db)):
-    print("Inside fn ")
     try:
         with open(os.path.join(SCHEMA_PATH, "c" + str(id) + ".sql"), mode="r") as file:
             file_data = file.read()
-            print("File data is "+ file_data)
             return StreamingResponse(iter(file_data), media_type="text/plain")
 
     except Exception as e:
@@ -269,10 +263,12 @@ def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db))
 def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.get_db)):
     solution_file_path = db.query(infra.db.Competitions.solution).filter(infra.db.Competitions.c_id == c_id).scalar()
 
-    submission_file_path = db.query(infra.db.Submissions.submission).filter(infra.db.Submissions.c_id == c_id and infra.db.Submissions.user_id == user_id).order_by(infra.db.Submissions.timestamp).scalar()
+    submission_file_path = db.query(infra.db.Submissions.submission).filter(
+        infra.db.Submissions.c_id == c_id and infra.db.Submissions.user_id == user_id).order_by(
+        infra.db.Submissions.timestamp).scalar()
 
-    dbname = "c"+str(c_id)
-    c_engine = create_engine('postgresql://postgres:admin@localhost:5432/'+dbname, echo=True)
+    dbname = "c" + str(c_id)
+    c_engine = create_engine('postgresql://test:test@localhost:5432/' + dbname, echo=True)
 
     connection = c_engine.connect()
     with c_engine.begin() as conn:
@@ -286,18 +282,17 @@ def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.
             for _ in range(5):
                 analyze_result = conn.execute(text(f'EXPLAIN ANALYZE {query}'))
                 for row in analyze_result:
-                    #print("owner:",row)
-                    if("Planning Time") in str(row):
+                    if ("Planning Time") in str(row):
                         expected_plan_time = float(re.findall(r'[\d]*[.][\d]+', str(row))[0])
                         sum_plan_times = sum_plan_times + expected_plan_time
-                    if("Execution Time") in str(row):
+                    if ("Execution Time") in str(row):
                         expected_exec_time = float(re.findall(r'[\d]*[.][\d]+', str(row))[0])
                         sum_exec_times = sum_exec_times + expected_exec_time
 
         expected_plan_time = sum_plan_times / 5
         expected_exec_time = sum_exec_times / 5
-        print("owner expected_plan_time:",expected_plan_time)
-        print("owner expected_exec_time:",expected_exec_time)
+        print("owner expected_plan_time:", expected_plan_time)
+        print("owner expected_exec_time:", expected_exec_time)
 
         sum_plan_times = 0
         sum_exec_times = 0
@@ -309,12 +304,11 @@ def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.
             for _ in range(5):
                 analyze_result_u = conn.execute(text(f'EXPLAIN ANALYZE {query}'))
                 for row in analyze_result_u:
-                    #print("user",row)
-                    if("Planning Time") in str(row):
+                    if ("Planning Time") in str(row):
                         user_plan_time = float(re.findall(r'[\d]*[.][\d]+', str(row))[0])
                         sum_plan_times = sum_plan_times + user_plan_time
 
-                    if("Execution Time") in str(row):
+                    if ("Execution Time") in str(row):
                         user_exec_time = float(re.findall(r'[\d]*[.][\d]+', str(row))[0])
                         sum_exec_times = sum_exec_times + user_exec_time
 
@@ -323,30 +317,31 @@ def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.
         conn.close()
 
     connection.close()
-        
+
     score = 0
     # Compare results
-    if(user_result == expected_result):
+    if (user_result == expected_result):
         score = 1
 
     # Further checks only if results match
-    if(score == 1):
-        if(user_plan_time <= expected_plan_time):
+    if (score == 1):
+        if (user_plan_time <= expected_plan_time):
             score = score + 1
-        if(user_exec_time <= expected_exec_time):
+        if (user_exec_time <= expected_exec_time):
             score = score + 1
         total_time = user_plan_time + user_exec_time
-        if(total_time <= expected_plan_time+expected_exec_time):
+        if (total_time <= expected_plan_time + expected_exec_time):
             score = score + 2
 
     # run multiple times and take avg ? range for expected?
 
     # update submission and leaderboard tables
-    x = db.query(infra.db.Submissions).filter(infra.db.Submissions.c_id == c_id and infra.db.Submissions.user_id == user_id)
-    x.update({infra.db.Submissions.planning_time:user_plan_time,
-              infra.db.Submissions.execution_time:user_exec_time,
-              infra.db.Submissions.total_time:total_time,
-              infra.db.Submissions.score:score}, synchronize_session = False)
+    x = db.query(infra.db.Submissions).filter(
+        infra.db.Submissions.c_id == c_id and infra.db.Submissions.user_id == user_id)
+    x.update({infra.db.Submissions.planning_time: user_plan_time,
+              infra.db.Submissions.execution_time: user_exec_time,
+              infra.db.Submissions.total_time: total_time,
+              infra.db.Submissions.score: score}, synchronize_session=False)
 
     db.commit()
 
@@ -355,3 +350,58 @@ def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.
     # TODO changes for slowest - query_type
 
     return {"query_score": score}
+
+
+@app.get("/v1/competitions/leaderboard/{competition_id}")
+def get_leaderboard(competition_id: int, db: Session = Depends(infra.db.get_db)):
+    competition = db.query(infra.db.competitions.c.query_type).filter(
+        infra.db.competitions.c.c_id == competition_id).first()
+
+    if competition is None:
+        return {"error": "Competition not found"}
+
+    query_type = competition[0]
+
+    if query_type == 0:
+        subquery = (
+            select([func.max(infra.db.submissions.c.total_time).label("best_time"), infra.db.submissions.c.user_id])
+            .where(infra.db.submissions.c.c_id == competition_id)
+            .group_by(infra.db.submissions.c.user_id)
+            .alias("best_submissions")
+        )
+
+        query = (
+            select([infra.db.submissions])
+            .select_from(infra.db.submissions.join(subquery, and_(
+                infra.db.submissions.c.user_id == subquery.c.user_id,
+                infra.db.submissions.c.total_time == subquery.c.best_time
+            )))
+            .where(infra.db.submissions.c.c_id == competition_id)
+            .order_by(asc(infra.db.submissions.c.total_time))
+        )
+    elif query_type == 1:
+        subquery = (
+            select([func.min(infra.db.submissions.c.total_time).label("best_time"), infra.db.submissions.c.user_id])
+            .where(infra.db.submissions.c.c_id == competition_id)
+            .group_by(infra.db.submissions.c.user_id)
+            .alias("best_submissions")
+        )
+
+        query = (
+            select([infra.db.submissions])
+            .select_from(infra.db.submissions.join(subquery, and_(
+                infra.db.submissions.c.user_id == subquery.c.user_id,
+                infra.db.submissions.c.total_time == subquery.c.best_time
+            )))
+            .where(infra.db.submissions.c.c_id == competition_id)
+            .order_by(desc(infra.db.submissions.c.total_time))
+        )
+    else:
+        return {"error": "Invalid query type"}
+
+    submissions = db.execute(query).fetchall()
+
+    if not submissions:
+        raise HTTPException(status_code=404, detail="User Details not found")
+
+    return submissions
