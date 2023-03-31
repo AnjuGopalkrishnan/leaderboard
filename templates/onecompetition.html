@@ -225,7 +225,12 @@
                 const accessToken = urlParams.get('access_token');
                 console.log("here AT is " + accessToken);
                 console.log("id is " + competitionId);
-                fetch("/v1/competitions/overview/" + competitionId)
+                fetch("/v1/competitions/overview/" + competitionId, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
                     .then(response => response.json())
                     .then(data => {
                         if (userId == data.host_user_id) {
@@ -242,7 +247,12 @@
             function downloadFile() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const competitionId = urlParams.get('id');
-                fetch("/v1/competitions/" + competitionId + "/download")
+                fetch("/v1/competitions/" + competitionId + "/download", {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
                     .then(response => response.blob())
                     .then(blob => {
                         const url = window.URL.createObjectURL(blob);

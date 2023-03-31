@@ -221,7 +221,8 @@
         </div>
         </div>
     <script>
-
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessToken = urlParams.get('access_token');
 
         function redirect() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -257,8 +258,9 @@
             formData.append('schemaFile', scheme);
             formData.append('solution', solution);
             fetch('/v1/competitions', {
+                'Authorization': `Bearer ${accessToken}`,
                 method: 'POST',
-                body: formData
+                body: formData,
              }).then(response => {
                  if (!response.ok) {
                      document.getElementById("error-message").innerHTML = 'Error in SQL files uploaded, please check and re-submit';
@@ -269,9 +271,6 @@
                                               return response.json();
                                           })
                                           .then(data => {
-                                              const urlParams = new URLSearchParams(window.location.search);
-                                              const accessToken = urlParams.get('access_token');
-                                              console.log("Here");
                                               window.location.href = "competition.html?access_token=" + accessToken;
                                           })
                 .catch(error => console.log("Error fetching competition data: ", error));
