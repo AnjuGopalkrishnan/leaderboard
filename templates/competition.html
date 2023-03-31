@@ -64,7 +64,7 @@
         <p style="font-family: Arial, sans-serif;">Grow your SQL skills by competing in our exciting competitions</p>
         <div class="button-container">
             <button class="button" onclick="redirect()">Host a competition</button>
-            <button class="button" onclick="hostList()">My competitions</button>
+            <!--<button class="button" onclick="hostList()">My competitions</button> -->
 
         </div>
         <br />
@@ -111,33 +111,45 @@
         const accessToken = urlParams.get('access_token');
         console.log("here AT is " + accessToken);
         const userId = 1;
-        function hostList() {
+ //       function hostList() {
+//
+ //           fetch("/v1/user/"+1+"/hosted")
+  //              .then(response => response.json())
+ //               .then(data => {
+ //                   // Iterate over each competition and add it to the list
+ //                   //console.log(data);
+ //                   document.getElementById('competition-list').innerHTML = "";
+  //                  document.getElementById('competion_title').innerHTML = "My competions";
+ //                   data.forEach(function (competition) {
+  //                      var competitionItem = $('<div class="col-lg-4 col-md-6 mb-4">')
+ //                           .addClass("list-group-item list-group-item-action competition-tile") // add the competition-tile class
+ //                           .append($('<div class="card h-100">')
+ //                               .append($('<div class="card-body">')
+ //                                   .append($('<h4 class="card-title">')
+ //                                       .text(competition.title))
+ //                                   //.append($('<p class="card-text">')
+ //                                   //    .text(competition.description))
+ //                                   .append($('<a href="#" class="btn btn-primary">')
+ //                                       .text('Leaderboard')
+ //                                       .attr("data-id", competition.c_id))
+ //                                   .append(function () {
+ //                                       if (userId != competition.host_user_id) {
+ //                                           return $('<a href="#" class="btn btn-primary ml-2">')
+ //                                               .text('hello')
+ //                                               .attr("data-id", competition.c_id)
+ //                                               .attr("participant", 1);
+ //                                       } else {
+ //                                           return '';
+ //                                       }
+ //                                   })
+ //                               )
+ //                           );
+ //                       $("#competition-list").append(competitionItem);
+ //                   });
+ //               })
+ //               .catch(error => console.log("Error fetching competition data: ", error));
 
-            fetch("/v1/user/"+2+"/hosted")
-                .then(response => response.json())
-                .then(data => {
-                    // Iterate over each competition and add it to the list
-                    //console.log(data);
-                    document.getElementById('competition-list').innerHTML = "";
-                    document.getElementById('competion_title').innerHTML = "My competions";
-                    data.forEach(function (competition) {
-                        var competitionItem = $('<div class="col-lg-4 col-md-6 mb-4">')
-                            .addClass("list-group-item list-group-item-action competition-tile") // add the competition-tile class
-                            .append($('<div class="card h-100">')
-                                .append($('<div class="card-body">')
-                                    .append($('<h4 class="card-title">')
-                                        .text(competition.title))
-                                    //.append($('<p class="card-text">')
-                                    //    .text(competition.description))
-                                    .append($('<a href="#" class="btn btn-primary">')
-                                        .text('Learn More')
-                                        .attr("data-id", competition.c_id))));
-                        $("#competition-list").append(competitionItem);
-                    });
-                })
-                .catch(error => console.log("Error fetching competition data: ", error));
-
-        }
+//        }
 
         function reset() {
 
@@ -148,7 +160,7 @@
                     //console.log(data);
                     document.getElementById('competition-list').innerHTML = "";
                     document.getElementById('competion_title').innerHTML = "Active Competitions";
-                    var myTextbox = document.getElementById("searchBox").innerHTML="";
+                    document.getElementById("searchBox").innerHTML="";
                     data.forEach(function (competition) {
                         var competitionItem = $('<div class="col-lg-4 col-md-6 mb-4">')
                             .addClass("list-group-item list-group-item-action competition-tile") // add the competition-tile class
@@ -159,8 +171,20 @@
                                     //.append($('<p class="card-text">')
                                     //    .text(competition.description))
                                     .append($('<a href="#" class="btn btn-primary">')
-                                        .text('Learn More')
-                                        .attr("data-id", competition.c_id))));
+                                        .text('Leaderboard')
+                                        .attr("data-id", competition.c_id))
+                                    .append(function () {
+                                        if (userId != competition.host_user_id) {
+                                            return $('<a href="#" class="btn btn-primary ml-2">')
+                                                .text('hello')
+                                                .attr("data-id", competition.c_id)
+                                                .attr("participant", 1);
+                                        } else {
+                                            return '';
+                                        }
+                                    })
+                                )
+                            );
                         $("#competition-list").append(competitionItem);
                     });
                 })
@@ -186,10 +210,7 @@
                         return response.json();
                     })
                     .then(competition => {
-                        document.getElementById('competion_title').innerHTML = "Search Results";
-                        var errorMessage = document.getElementById('error-message');
-                        errorMessage.style.display = 'none';
-                        // Iterate over each competition and add it to the list
+                        document.getElementById("competition-list").innerHTML = '';
                         var competitionItem = $('<div class="col-lg-4 col-md-6 mb-4">')
                             .addClass("list-group-item list-group-item-action competition-tile") // add the competition-tile class
                             .append($('<div class="card h-100">')
@@ -199,9 +220,20 @@
                                     //.append($('<p class="card-text">')
                                     //    .text(competition.description))
                                     .append($('<a href="#" class="btn btn-primary">')
-                                        .text('Learn More')
-                                        .attr("data-id", competition.c_id))));
-                        document.getElementById('competition-list').innerHTML = "";
+                                        .text('Leaderboard')
+                                        .attr("data-id", competition.c_id))
+                                    .append(function () {
+                                        if (userId != competition.host_user_id) {
+                                            return $('<a href="#" class="btn btn-primary ml-2">')
+                                                .text('hello')
+                                                .attr("data-id", competition.c_id)
+                                                .attr("participant", 1);
+                                        } else {
+                                            return '';
+                                        }
+                                    })
+                                )
+                            );
                         $("#competition-list").append(competitionItem);
                     })
                     .catch(error => console.log("Error fetching competition data: ", error));
@@ -231,8 +263,20 @@
                                     //.append($('<p class="card-text">')
                                     //    .text(competition.description))
                                     .append($('<a href="#" class="btn btn-primary">')
-                                        .text('Learn More')
-                                        .attr("data-id", competition.c_id))));
+                                        .text('Leaderboard')
+                                        .attr("data-id", competition.c_id))
+                                    .append(function () {
+                                        if (userId != competition.host_user_id) {
+                                            return $('<a href="#" class="btn btn-primary ml-2">')
+                                                .text('Participate')
+                                                .attr("data-id", competition.c_id)
+                                                .attr("participant", 1);
+                                        } else {
+                                            return '';
+                                        }
+                                    })
+                                )
+                            );
                         $("#competition-list").append(competitionItem);
                     });
                 })
@@ -243,9 +287,14 @@
             $("#competition-list").on("click", ".btn", function () {
                 // Get the id of the clicked competition
                 var competitionId = $(this).attr("data-id");
-                console.log("comp id ");
-                console.log(competitionId);
-                window.location.href = 'onecompetition.html?id=' + competitionId + '&access_token=' + accessToken;
+                var participant = $(this).attr("participant");
+                console.log("comp id " + competitionId);
+                if (participant == 1) {
+                    window.location.href = 'onecompetition.html?id=' + competitionId + '&access_token=' + accessToken;
+                }
+                else {
+                    window.location.href = 'leaderboard.html?id=' + competitionId + '&access_token=' + accessToken;
+                }
 
             });
         });

@@ -124,6 +124,18 @@
         color: white;
     }
 
+    .back-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #333;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
     #next-btn:hover, #submit-btn:hover {
             background-color: #3e8e41;
     }
@@ -152,6 +164,8 @@
 
                 You bring the problem and the data, and Kaggle brings the platform.
             </p>
+            <button class="back-button" id="back-button" onclick="redirect()">Back</button>
+
             <form id="form">
                 <fieldset>
                     <legend>Competition Details</legend>
@@ -196,6 +210,8 @@
                         <input type="file" id="solution" name="file" required>
                     </div>
 
+                    <div id="error-message">
+                    </div>
 
                     <div class="form-submit">
                         <button type="submit" id="submit-btn" name="Submit">Submit</button>
@@ -205,6 +221,16 @@
         </div>
         </div>
     <script>
+
+
+        function redirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const accessToken = urlParams.get('access_token');
+            window.location.href = "competition.html?access_token=" + accessToken;
+        }
+
+
+
         function handleSubmit(event) {
 
 
@@ -225,7 +251,7 @@
 
             const formData = new FormData();
             formData.append('title', titleInput.value);
-            formData.append('hostUserId', 9);
+            formData.append('hostUserId', 1);
             formData.append('description', descriptionInput.value);
             formData.append('queryType', selectedValue.value);
             formData.append('schemaFile', scheme);
@@ -234,13 +260,21 @@
                 method: 'POST',
                 body: formData
              }).then(response => {
-                                              if (!response.ok) {
+                 if (!response.ok) {
+                     document.getElementById("error-message").innerHTML = 'Error in SQL files uploaded, please check and re-submit';
+                     document.getElementById("error-message").style.color = "red";
                                                   throw new Error(`HTTP error! status: ${response.status}`);
                                               }
+                 document.getElementById("error-message").innerHTML = '';
                                               return response.json();
                                           })
                                           .then(data => {
-                                              console.log(data);});
+                                              const urlParams = new URLSearchParams(window.location.search);
+                                              const accessToken = urlParams.get('access_token');
+                                              console.log("Here");
+                                              window.location.href = "competition.html?access_token=" + accessToken;
+                                          })
+                .catch(error => console.log("Error fetching competition data: ", error));
 
         }
 
