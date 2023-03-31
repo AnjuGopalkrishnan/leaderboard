@@ -5,20 +5,22 @@ import re
 from fastapi import FastAPI, HTTPException, Depends, Form, UploadFile, File
 from fastapi.responses import StreamingResponse
 from fastapi import Request
+from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text, create_engine, desc
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy_utils import database_exists, create_database, drop_database
 from starlette.templating import Jinja2Templates
-
+import typing
 import infra.db
 import lib.authenticate
 from infra import models
 from infra.db import User
-from lib import jwt
+from lib import jwt,metricCal
 
 templates = Jinja2Templates(directory="templates")
+
 
 SCHEMA_PATH = "schemas"
 ANS_PATH = "answers"
@@ -31,6 +33,7 @@ if not os.path.exists(ANS_PATH):
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/user/login")
 
 
 @app.get("/")
@@ -102,18 +105,18 @@ def login(user: models.User):
             detail="Incorrect username or password",
         )
 
-    if not lib.authenticate.verify_password(user.password, row[2]):
+    if not lib.authenticate.verify_password(user.password, row[1]):
         raise HTTPException(
             status_code=401,
             detail="Incorrect username or password",
         )
     #    print("user is ", user)
     access_token = jwt.create_access_token(payload={"username": user.username})
-    return {"access_token": access_token}
+    return {"access_token": access_token,"token_type":"bearer"}
 
 
 @app.get("/v1/user/{id}/hosted")
-def hosted(id):
+def hosted(id,current_user: infra.db.User = Depends(jwt.get_current_user)):
     query = infra.db.competitions.select().where(infra.db.competitions.c.host_user_id == id)
     with infra.db.engine.begin() as conn:
         res = conn.execute(query)
@@ -129,7 +132,7 @@ def hosted(id):
 
 
 @app.get("/v1/user/{id}/competitions")
-def getcompetitions(id):
+def getcompetitions(id,current_user: infra.db.User = Depends(jwt.get_current_user)):
     query = infra.db.submissions.select().where(infra.db.submissions.c.user_id == id)
     with infra.db.engine.begin() as conn:
         res = conn.execute(query)
@@ -153,7 +156,7 @@ def getcompetitions(id):
 
 
 @app.get("/v1/competitions")
-def get_competitions(skip: int = 0, limit: int = None, db: Session = Depends(infra.db.get_db)):
+def get_competitions(skip: int = 0, limit: int = None, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     competitions = db.query(infra.db.Competitions).offset(skip).all()
     if limit is not None:
         competitions = competitions[:limit]
@@ -161,7 +164,7 @@ def get_competitions(skip: int = 0, limit: int = None, db: Session = Depends(inf
 
 
 @app.get("/v1/competitions/{name}")
-def search_competition(name: str, db: Session = Depends(infra.db.get_db)):
+def search_competition(name: str, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     competition = db.query(infra.db.Competitions).filter(infra.db.Competitions.title == name).first()
     if not competition:
         raise HTTPException(status_code=404, detail="Competition not found")
@@ -173,7 +176,7 @@ def create_competition(title: str = Form(...),
                        description: str = Form(...),
                        queryType: str = Form(...),
                        schemaFile: UploadFile = File(...),
-                       solution: UploadFile = File(...), db: Session = Depends(infra.db.get_db)):
+                       solution: UploadFile = File(...), db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     cur_time = datetime.now()
     dt_string = cur_time.strftime("%d/%m/%Y %H:%M:%S")
 
@@ -186,7 +189,7 @@ def create_competition(title: str = Form(...),
     current_comp_id = len(db.query(infra.db.Competitions).all()) + 1
     dbname = "c" + str(current_comp_id)
 
-    c_engine = create_engine("postgresql://postgres@localhost:5432/" + dbname, isolation_level="AUTOCOMMIT")
+    c_engine = create_engine("postgresql://testuser:testuser@localhost:5432/" + dbname, isolation_level="AUTOCOMMIT")
     if not database_exists(c_engine.url):
         create_database(c_engine.url)
 
@@ -222,7 +225,7 @@ def create_competition(title: str = Form(...),
 
 
 @app.get("/v1/competitions/overview/{id}")
-def get_competition_details(id: int, db: Session = Depends(infra.db.get_db)):
+def get_competition_details(id: int, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     competition = db.query(infra.db.Competitions).filter(infra.db.Competitions.c_id == id).first()
     if not competition:
         raise HTTPException(status_code=404, detail="Competition not found")
@@ -237,7 +240,7 @@ def get_competition_details(id: int, db: Session = Depends(infra.db.get_db)):
 
 
 @app.get("/v1/competitions/leaderboard/{id}")
-def get_leaderboard(id: int, db: Session = Depends(infra.db.get_db)):
+def get_leaderboard(id: int, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     leaderboard = db.query(infra.db.Leaderboard).filter(infra.db.Leaderboard.c_id == id).all()
     if not leaderboard:
         raise HTTPException(status_code=404, detail="Leaderboard not found")
@@ -245,7 +248,7 @@ def get_leaderboard(id: int, db: Session = Depends(infra.db.get_db)):
 
 
 @app.get("/v1/competitions/leaderboard/{user_id}")
-def get_leaderboard_user_details(user_id: int, db: Session = Depends(infra.db.get_db)):
+def get_leaderboard_user_details(user_id: int, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     user_submissions = db.query(infra.db.Leaderboard).filter(infra.db.Leaderboard.user_id == user_id).all()
     if not user_submissions:
         raise HTTPException(status_code=404, detail="User Details not found")
@@ -253,7 +256,7 @@ def get_leaderboard_user_details(user_id: int, db: Session = Depends(infra.db.ge
 
 
 @app.get("/v1/competitions/{id}/download")
-def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db)):
+def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     print("Inside fn ")
     try:
         with open(os.path.join(SCHEMA_PATH, "c" + str(id) + ".sql"), mode="r") as file:
@@ -266,7 +269,7 @@ def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db))
 
 
 @app.post("/v1/evaluations/competition/{c_id}/submissions/{user_id}")
-def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.get_db)):
+def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
     solution_file_path = db.query(infra.db.Competitions.solution).filter(infra.db.Competitions.c_id == c_id).scalar()
     submission_file_path_row = db.query(infra.db.Submissions.submission).filter(infra.db.Submissions.c_id == c_id and infra.db.Submissions.user_id == user_id).order_by(desc(infra.db.Submissions.timestamp)).first()
     for row in submission_file_path_row:
@@ -304,7 +307,7 @@ def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.
         conn.close()
 
     connection.close()
-        
+
     score = 0
     # Compare results
     if(user_result == expected_result):
@@ -317,11 +320,11 @@ def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.
         et = max_time - user_exec_time
         tt = max_time - (user_plan_time + user_exec_time)
         score = score+pt+et+tt
-    
+
     # update submission tables
 
     x = db.query(infra.db.Submissions).\
-        filter(infra.db.Submissions.c_id == c_id, 
+        filter(infra.db.Submissions.c_id == c_id,
                infra.db.Submissions.user_id == user_id).\
         order_by(desc(infra.db.Submissions.timestamp)).\
         first()
@@ -333,3 +336,14 @@ def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.
     # TODO changes for slowest - query_type
 
     return {"query_score": score}
+
+
+@app.get("/v1/competitions/{id}/download")
+def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db),current_user: infra.db.User = Depends(jwt.get_current_user)):
+    pass
+
+@app.get("/v1/queryMetrics")
+def test(current_user: infra.db.User = Depends(jwt.get_current_user)):
+    query = "select * from users"
+    print(current_user)
+    return lib.metricCal.get_query_score(query)
