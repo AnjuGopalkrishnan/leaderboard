@@ -50,15 +50,6 @@ class User(Base):
 class Competitions(Base):
     __table__ = competitions
 
-
-class Leaderboard(Base):
-    __tablename__ = "leaderboard"
-
-    c_id = Column(Integer, ForeignKey("competitions.c_id"), primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"), primary_key=True)
-    score = Column(Float, nullable=False)
-
-
 submissions = Table(
     'submissions', metadata,
     Column('c_id', Integer, ForeignKey("competitions.c_id"), primary_key=True),
