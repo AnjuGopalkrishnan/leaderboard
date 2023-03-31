@@ -124,6 +124,18 @@
         color: white;
     }
 
+    .back-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #333;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
     #next-btn:hover, #submit-btn:hover {
             background-color: #3e8e41;
     }
@@ -152,6 +164,8 @@
 
                 You bring the problem and the data, and Kaggle brings the platform.
             </p>
+            <button class="back-button" id="back-button" onclick="redirect()">Back</button>
+
             <form id="form">
                 <fieldset>
                     <legend>Competition Details</legend>
@@ -207,6 +221,16 @@
         </div>
         </div>
     <script>
+
+
+        function redirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const accessToken = urlParams.get('access_token');
+            window.location.href = "competition.html?access_token=" + accessToken;
+        }
+
+
+
         function handleSubmit(event) {
 
 
