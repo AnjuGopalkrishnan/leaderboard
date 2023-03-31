@@ -258,9 +258,11 @@
             formData.append('schemaFile', scheme);
             formData.append('solution', solution);
             fetch('/v1/competitions', {
-                'Authorization': `Bearer ${accessToken}`,
-                method: 'POST',
-                body: formData,
+                   headers: {
+                      'Authorization': `Bearer ${accessToken}`,
+                   },
+                    method: 'POST',
+                    body: formData,
              }).then(response => {
                  if (!response.ok) {
                      document.getElementById("error-message").innerHTML = 'Error in SQL files uploaded, please check and re-submit';

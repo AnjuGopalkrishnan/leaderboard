@@ -34,7 +34,6 @@ def verify_access_token(token: str, credentials_exception):
 
     try:
         payload = decode_token(token)
-        print(payload)
         id: str = payload.get("username")
         if id is None:
             raise credentials_exception
@@ -49,6 +48,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
                                           detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
 
     token = verify_access_token(token, credentials_exception)
-    user = db.query(infra.db.User).filter(infra.db.User.username == token).first()
+    user = db.query(infra.db.User).filter(infra.db.User.email == token).first()
 
     return user
