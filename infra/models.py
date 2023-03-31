@@ -5,6 +5,12 @@ from pydantic import BaseModel, Field
 class User(BaseModel):
     password: str
     username: str
+    email: str
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
 
 
 class FormSchema(BaseModel):
