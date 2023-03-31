@@ -77,7 +77,7 @@ def home(request: Request):
 def register(user: models.User, db: Session = Depends(infra.db.get_db)):
     hashPwd = lib.authenticate.get_password_hash(user.password)
 
-    new_user = User(username=user.username, password=hashPwd)
+    new_user = User(username=user.username, password=hashPwd, email = user.email)
     db.add(new_user)
     try:
         db.commit()
@@ -86,18 +86,17 @@ def register(user: models.User, db: Session = Depends(infra.db.get_db)):
             "register_success": True
         }
     except SQLAlchemyError as e:
-        print(e)
         return {
             "register_success": False
         }
 
 
 @app.post("/v1/user/login")
-def login(user: models.User):
+def login(user: models.UserLogin):
     values = {
-        'username': user.username,
+        'email': user.username,
     }
-    query = text("SELECT * FROM users WHERE username = :username LIMIT 1")
+    query = text("SELECT * FROM users WHERE email = :email LIMIT 1")
     with infra.db.engine.begin() as conn:
         res = conn.execute(query, values)
 
@@ -108,7 +107,7 @@ def login(user: models.User):
             detail="Incorrect username or password",
         )
 
-    if not lib.authenticate.verify_password(user.password, row[1]):
+    if not lib.authenticate.verify_password(user.password, row[-1]):
         raise HTTPException(
             status_code=401,
             detail="Incorrect username or password",
