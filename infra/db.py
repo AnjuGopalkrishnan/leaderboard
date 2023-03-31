@@ -26,6 +26,7 @@ def get_db():
 users = Table(
     'users', metadata,
     Column('user_id', Integer, primary_key=True, index=True),
+    Column('email', String, primary_key=True),
     Column('username', String, primary_key=True),
     Column('password', String),
 )
