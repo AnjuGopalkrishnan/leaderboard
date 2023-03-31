@@ -153,7 +153,12 @@
 
         function reset() {
 
-            fetch("/v1/competitions")
+            fetch("/v1/competitions", {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            })
                 .then(response => response.json())
                 .then(data => {
                     // Iterate over each competition and add it to the list
@@ -176,7 +181,7 @@
                                     .append(function () {
                                         if (userId != competition.host_user_id) {
                                             return $('<a href="#" class="btn btn-primary ml-2">')
-                                                .text('hello')
+                                                .text('Participate')
                                                 .attr("data-id", competition.c_id)
                                                 .attr("participant", 1);
                                         } else {
@@ -199,7 +204,12 @@
 
 
             if (searchTerm !== '') {
-                fetch("/v1/competitions/" + searchTerm)
+                fetch("/v1/competitions/" + searchTerm, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
                     .then(response => {
                         if (!response.ok) {
                             var errorMessage = document.getElementById('error-message');
@@ -225,7 +235,7 @@
                                     .append(function () {
                                         if (userId != competition.host_user_id) {
                                             return $('<a href="#" class="btn btn-primary ml-2">')
-                                                .text('hello')
+                                                .text('Participate')
                                                 .attr("data-id", competition.c_id)
                                                 .attr("participant", 1);
                                         } else {
@@ -248,7 +258,12 @@
 
         $(document).ready(function () {
             // Make Fetch API call to fetch competition data
-            fetch("/v1/competitions")
+            fetch("/v1/competitions", {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            })
                 .then(response => response.json())
                 .then(data => {
                     // Iterate over each competition and add it to the list
