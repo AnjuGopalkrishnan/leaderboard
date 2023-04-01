@@ -96,7 +96,10 @@
     <button class ="back-button" id="back-button">Home</button>
 
     <script>
-        const apiUrl = "https://example.com/leaderboard";
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessToken = urlParams.get('access_token');
+        const cId = urlParams.get('id');
+        const apiUrl = "/v1/competitions/leaderboard/"+cId;
 
         // Function to populate the leaderboard table with data from the API response
         const populateLeaderboard = (data) => {
@@ -125,7 +128,12 @@
         };
 
         // Make the API call and populate the leaderboard on page load
-        fetch(apiUrl)
+        fetch(apiUrl, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        })
             .then(response => response.json())
             .then(data => populateLeaderboard(data))
             .catch(error => handleApiError(error));
@@ -133,8 +141,6 @@
         // Add event listener to back button to go back to previous page
         const backButton = document.getElementById("back-button");
         backButton.addEventListener("click", () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const accessToken = urlParams.get('access_token');
             window.location.href = "competition.html?access_token=" + accessToken;
         });
     </script>
