@@ -13,6 +13,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy_utils import database_exists, create_database, drop_database
 from starlette.templating import Jinja2Templates
 import typing
+from fastapi.responses import StreamingResponse
+import io
 from sqlalchemy import select, desc, asc, func
 
 import infra.db
@@ -263,16 +265,19 @@ def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db),
     try:
         with open(os.path.join(SCHEMA_PATH, "c" + str(id) + ".sql"), mode="r") as file:
             file_data = file.read()
-            return StreamingResponse(iter(file_data), media_type="text/plain")
+            file_like = io.StringIO(file_data)
+            return StreamingResponse(iter(lambda: file_like.read(1024), ''), media_type="text/plain")
 
     except Exception as e:
         raise HTTPException(status_code=404, detail="Competition Details not found")
 
 
-@app.post("/v1/evaluations/competition/{c_id}/submissions/{user_id}")
-def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.get_db),
+@app.post("/v1/evaluations/competition/{c_id}/submissions/")
+def evaluate_submission(c_id: int, db: Session = Depends(infra.db.get_db),
                         solution: UploadFile = File(...),
                         current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
+
+    user_id = current_user.user_id
     number_submissions = db.query(infra.db.Submissions).filter(infra.db.Submissions.c_id == c_id).filter(
         infra.db.Submissions.user_id == user_id).count()
 
