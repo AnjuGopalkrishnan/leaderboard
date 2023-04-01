@@ -204,11 +204,10 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const accessToken = urlParams.get('access_token');
+            const id = urlParams.get('id');
 
             function leaderBoard() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const accessToken = urlParams.get('access_token');
-                window.location.href = "leaderboard.html?access_token=" + accessToken;
+                window.location.href = "leaderboard.html?access_token=" + accessToken + '&id='+id;
             }
 
 
