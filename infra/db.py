@@ -57,12 +57,12 @@ submissions = Table(
     Column('c_id', Integer, ForeignKey("competitions.c_id"), primary_key=True),
     Column('user_id', Integer, ForeignKey("users.user_id"), primary_key=True),
     Column('submission', String),
-    Column('score', Integer),
-    Column('timestamp', DateTime, default=datetime.utcnow, primary_key=True),
+    Column('timestamp', DateTime, default=datetime.utcnow),
     Column('planning_time', Float),
     Column('execution_time', Float),
     Column('total_time', Float),
     Column('query_complexity', Float),
+    Column('attempt_number', Integer, primary_key=True),
 )
 
 

@@ -1,3 +1,4 @@
+import json
 import os.path
 from datetime import datetime
 import re
@@ -22,6 +23,7 @@ import lib.authenticate
 from infra import models
 from infra.db import User
 from lib import jwt_methods, metricCal
+from fastapi.encoders import jsonable_encoder
 
 templates = Jinja2Templates(directory="templates")
 
@@ -123,7 +125,6 @@ def login(user: models.UserLogin):
         )
     #    print("user is ", user)
     access_token = jwt_methods.create_access_token(payload={"username": user.username})
-    print(access_token)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -285,7 +286,6 @@ def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db),
 def evaluate_submission(c_id: int, submission: UploadFile = File(...),
                         db: Session = Depends(infra.db.get_db),
                         current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
-
     user_id = current_user.user_id
     number_submissions = db.query(infra.db.Submissions).filter(infra.db.Submissions.c_id == c_id).filter(
         infra.db.Submissions.user_id == user_id).count()
@@ -320,7 +320,7 @@ def evaluate_submission(c_id: int, submission: UploadFile = File(...),
                 query = text(file_query)
                 user_result = conn.execute(query).all()
 
-                if (user_result == expected_result):
+                if user_result == expected_result:
                     # Take avg of 100 execution performance
                     for _ in range(100):
                         analyze_result_u = conn.execute(text(f'EXPLAIN ANALYZE {query}'))
@@ -352,8 +352,8 @@ def evaluate_submission(c_id: int, submission: UploadFile = File(...),
         execution_time=user_exec_time,
         submission=submission_file_path,
         timestamp=datetime.now(),
-        score=0.0,
-        query_complexity=100
+        attempt_number=number_submissions + 1,
+        query_complexity=complexity
     )
 
     db.add(submission)
@@ -364,6 +364,10 @@ def evaluate_submission(c_id: int, submission: UploadFile = File(...),
 
 @app.get("/v1/competitions/leaderboard/{c_id}")
 def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
+    user_id_to_username = {}
+    for user in db.query(infra.db.User.user_id, infra.db.User.username):
+        user_id_to_username[user.user_id] = user.username
+
     competition = db.query(infra.db.competitions.c.query_type).filter(
         infra.db.competitions.c.c_id == c_id).first()
 
@@ -377,7 +381,7 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
 
     if query_type == 0:
         subquery = (
-            select([func.max(infra.db.submissions.c[metric]).label("best_time"), infra.db.submissions.c.user_id])
+            select([func.min(infra.db.submissions.c[metric]).label("best_time"), infra.db.submissions.c.user_id])
             .where(infra.db.submissions.c.c_id == c_id)
             .group_by(infra.db.submissions.c.user_id)
             .alias("best_submissions")
@@ -394,7 +398,7 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
         )
     elif query_type == 1:
         subquery = (
-            select([func.min(infra.db.submissions.c[metric]).label("best_time"), infra.db.submissions.c.user_id])
+            select([func.max(infra.db.submissions.c[metric]).label("best_time"), infra.db.submissions.c.user_id])
             .where(infra.db.submissions.c.c_id == c_id)
             .group_by(infra.db.submissions.c.user_id)
             .alias("best_submissions")
@@ -412,7 +416,11 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
     else:
         return {"error": "Invalid query type"}
 
-    submissions = db.execute(query).fetchall()
+    submissions = jsonable_encoder(db.execute(query).fetchall())
+
+    for elem in submissions:
+        elem["username"] = user_id_to_username[elem["user_id"]]
+        del elem["user_id"]
 
     if not submissions:
         raise HTTPException(status_code=404, detail="User Details not found")
@@ -422,7 +430,6 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
 @app.get("/v1/queryMetrics")
 def test(current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
     query = "select * from users"
-    print(current_user)
     return lib.metricCal.get_query_score(query)
 
 
