@@ -35,11 +35,12 @@ competitions = Table(
     'competitions', metadata,
     Column('c_id', Integer, primary_key=True),
     Column('title', String),
-    Column('query_type', String),
+    Column('query_type', Integer),
     Column('description', String),
     Column('schema', String),
     Column('solution', String),
     Column('host_user_id', Integer, ForeignKey("users.user_id")),
+    Column('metric', Integer),
     Column('due_date', DateTime),
 )
 

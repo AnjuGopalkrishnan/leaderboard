@@ -373,11 +373,11 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
     if competition is None:
         return {"error": "Competition not found"}
 
-    query_type = competition[0]
+    query_type = int(competition[0])
 
     if query_type == 0:
         subquery = (
-            select([func.max(infra.db.submissions.c.total_time).label("best_time"), infra.db.submissions.c.user_id])
+            select([func.max(infra.db.submissions.c[metric]).label("best_time"), infra.db.submissions.c.user_id])
             .where(infra.db.submissions.c.c_id == c_id)
             .group_by(infra.db.submissions.c.user_id)
             .alias("best_submissions")
@@ -387,14 +387,14 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
             select([infra.db.submissions])
             .select_from(infra.db.submissions.join(subquery, and_(
                 infra.db.submissions.c.user_id == subquery.c.user_id,
-                infra.db.submissions.c.total_time == subquery.c.best_time
+                infra.db.submissions.c[metric] == subquery.c.best_time
             )))
             .where(infra.db.submissions.c.c_id == c_id)
             .order_by(asc(infra.db.submissions.c[metric]))
         )
     elif query_type == 1:
         subquery = (
-            select([func.min(infra.db.submissions.c.total_time).label("best_time"), infra.db.submissions.c.user_id])
+            select([func.min(infra.db.submissions.c[metric]).label("best_time"), infra.db.submissions.c.user_id])
             .where(infra.db.submissions.c.c_id == c_id)
             .group_by(infra.db.submissions.c.user_id)
             .alias("best_submissions")
@@ -404,7 +404,7 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
             select([infra.db.submissions])
             .select_from(infra.db.submissions.join(subquery, and_(
                 infra.db.submissions.c.user_id == subquery.c.user_id,
-                infra.db.submissions.c.total_time == subquery.c.best_time
+                infra.db.submissions.c[metric] == subquery.c.best_time
             )))
             .where(infra.db.submissions.c.c_id == c_id)
             .order_by(desc(infra.db.submissions.c[metric]))
