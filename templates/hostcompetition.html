@@ -144,25 +144,26 @@
 <body>
     <div class="container">
         <div class="text text2">
-            <h2>Host your SQL competition on ABC</h2>
+            <h2>Host your SQL competition on Query Combat</h2>
             <p>
                 Whether you’re an SQL enthusiast, a teacher in class, or part of a business looking to solve challenging problems,
-                the ABC platform connects your audience with your SQL goals.
+                the Query Combat platform connects your audience with your SQL goals.
             </p>
         </div>
         <div class="image">
+            <!-- Image referenced from https://www.kaggle.com/c/about/host -->
             <img src="static\img\comp.svg" alt="your image" />
         </div>
         <div class="text">
             <h2>
-                Why a Kaggle Competition?
+                Why a Query combat Competition?
             </h2>
             <p>
-                Kaggle is the home of data science, with over 13 million users, ready to solve your predictive modeling problem through data competitions.
+                Query Combat is the home of SQL competitions, with over 13 million users, ready to solve your SQL problems through competitions.
 
-                You set the terms, Kagglers construct their algorithms, and our website scores their accuracy in real time to find the winner. Competitions are the smart, simple way to tackle a tough business problem, educate students, or simply create a fun event.
+                You set the terms, Participants construct their query, and our website scores their queries in real time based on the metric selected by you, to find the winner. Competitions are the smart, simple way to tackle a tough business problem, educate students, or simply create a fun event.
 
-                You bring the problem and the data, and Kaggle brings the platform.
+                You bring the problem and the data, and Query Combat brings the platform.
             </p>
             <button class="back-button" id="back-button" onclick="redirect()">Back</button>
 
@@ -202,6 +203,16 @@
                             <label for="query-input-0">Query:</label>
                             <textarea id="query-input" class="query-input" name="query" required></textarea>
                         </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="metric">Metric To Judge:</label>
+                        <select id="metric">
+                            <option value="0" selected>Execution Time </option>
+                            <option value="1">Planning Time </option>
+                            <option value="2">Total Time</option>
+                            <option value="3">Query Complexity</option>
+                        </select>
                     </div>
 
 
@@ -245,7 +256,7 @@
             const selectedValue = document.querySelector('input[name="queryType"]:checked');
             const scheme = document.getElementById('schemaFile').files[0];
             const solution = document.getElementById('solution').files[0];
-
+            var metric = document.getElementById("metric");
 
 
             //const form = new FormData(inputForm);
@@ -257,6 +268,9 @@
             formData.append('queryType', selectedValue.value);
             formData.append('schemaFile', scheme);
             formData.append('solution', solution);
+            formData.append('queryInput', queryInput.value);
+            formData.append('metric', metric.value);
+            
             fetch('/v1/competitions', {
                    headers: {
                       'Authorization': `Bearer ${accessToken}`,

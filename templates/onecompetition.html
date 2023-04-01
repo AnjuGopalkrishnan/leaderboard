@@ -202,6 +202,9 @@
 
         <script>
 
+            const urlParams = new URLSearchParams(window.location.search);
+            const accessToken = urlParams.get('access_token');
+
             function leaderBoard() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const accessToken = urlParams.get('access_token');
