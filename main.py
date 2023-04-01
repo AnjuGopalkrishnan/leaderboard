@@ -25,6 +25,13 @@ from lib import jwt_methods, metricCal
 
 templates = Jinja2Templates(directory="templates")
 
+metric_mapping = {
+    0: "execution_time",
+    1: "planning_time",
+    2: "total_time",
+    3: "query_complexity",
+}
+
 SCHEMA_PATH = "schemas"
 ANS_PATH = "answers"
 CONTESTANT_SOLUTIONS = "solutions"
@@ -183,6 +190,7 @@ def create_competition(title: str = Form(...),
                        hostUserId: str = Form(...),
                        description: str = Form(...),
                        queryType: str = Form(...),
+                       metric: str = Form(...),
                        schemaFile: UploadFile = File(...),
                        solution: UploadFile = File(...),
                        db: Session = Depends(infra.db.get_db),
@@ -222,7 +230,8 @@ def create_competition(title: str = Form(...),
                                             schema=schema_file_path,
                                             host_user_id=hostUserId,
                                             query_type=queryType,
-                                            due_date=dt_string)
+                                            due_date=dt_string,
+                                            metric=metric)
         db.add(competition)
         db.commit()
         db.refresh(competition)
@@ -276,6 +285,7 @@ def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db),
 def evaluate_submission(c_id: int, submission: UploadFile = File(...),
                         db: Session = Depends(infra.db.get_db),
                         current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
+
     user_id = current_user.user_id
     number_submissions = db.query(infra.db.Submissions).filter(infra.db.Submissions.c_id == c_id).filter(
         infra.db.Submissions.user_id == user_id).count()
@@ -333,25 +343,32 @@ def evaluate_submission(c_id: int, submission: UploadFile = File(...),
             raise HTTPException(status_code=404, detail="Exception in metric calculation")
 
     # update submission tables
+    total_time = user_plan_time + user_exec_time
     submission = infra.db.Submissions(
         c_id=c_id,
         user_id=user_id,
-        total_time=user_plan_time + user_exec_time,
+        total_time=total_time,
         planning_time=user_plan_time,
         execution_time=user_exec_time,
         submission=submission_file_path,
-        timestamp="2023-04-01 16:42:00",
+        timestamp=datetime.now(),
+        score=0.0,
         query_complexity=100
     )
+
     db.add(submission)
     db.commit()
-    return {"planning_time": user_plan_time, "execution_time": user_exec_time, "total_time": total_time, "query_complexity": complexity}
+    return {"planning_time": user_plan_time, "execution_time": user_exec_time, "total_time": total_time,
+            "query_complexity": complexity}
 
 
-@app.get("/v1/competitions/leaderboard/{competition_id}")
-def get_leaderboard(competition_id: int, db: Session = Depends(infra.db.get_db)):
+@app.get("/v1/competitions/leaderboard/{c_id}")
+def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
     competition = db.query(infra.db.competitions.c.query_type).filter(
-        infra.db.competitions.c.c_id == competition_id).first()
+        infra.db.competitions.c.c_id == c_id).first()
+
+    metric_key = db.query(infra.db.Competitions).filter(infra.db.Competitions.c_id == c_id).first().metric
+    metric = metric_mapping[metric_key]
 
     if competition is None:
         return {"error": "Competition not found"}
@@ -361,7 +378,7 @@ def get_leaderboard(competition_id: int, db: Session = Depends(infra.db.get_db))
     if query_type == 0:
         subquery = (
             select([func.max(infra.db.submissions.c.total_time).label("best_time"), infra.db.submissions.c.user_id])
-            .where(infra.db.submissions.c.c_id == competition_id)
+            .where(infra.db.submissions.c.c_id == c_id)
             .group_by(infra.db.submissions.c.user_id)
             .alias("best_submissions")
         )
@@ -372,13 +389,13 @@ def get_leaderboard(competition_id: int, db: Session = Depends(infra.db.get_db))
                 infra.db.submissions.c.user_id == subquery.c.user_id,
                 infra.db.submissions.c.total_time == subquery.c.best_time
             )))
-            .where(infra.db.submissions.c.c_id == competition_id)
-            .order_by(asc(infra.db.submissions.c.total_time))
+            .where(infra.db.submissions.c.c_id == c_id)
+            .order_by(asc(infra.db.submissions.c[metric]))
         )
     elif query_type == 1:
         subquery = (
             select([func.min(infra.db.submissions.c.total_time).label("best_time"), infra.db.submissions.c.user_id])
-            .where(infra.db.submissions.c.c_id == competition_id)
+            .where(infra.db.submissions.c.c_id == c_id)
             .group_by(infra.db.submissions.c.user_id)
             .alias("best_submissions")
         )
@@ -389,8 +406,8 @@ def get_leaderboard(competition_id: int, db: Session = Depends(infra.db.get_db))
                 infra.db.submissions.c.user_id == subquery.c.user_id,
                 infra.db.submissions.c.total_time == subquery.c.best_time
             )))
-            .where(infra.db.submissions.c.c_id == competition_id)
-            .order_by(desc(infra.db.submissions.c.total_time))
+            .where(infra.db.submissions.c.c_id == c_id)
+            .order_by(desc(infra.db.submissions.c[metric]))
         )
     else:
         return {"error": "Invalid query type"}
@@ -401,13 +418,6 @@ def get_leaderboard(competition_id: int, db: Session = Depends(infra.db.get_db))
         raise HTTPException(status_code=404, detail="User Details not found")
 
     return submissions
-
-
-@app.get("/v1/competitions/{id}/download")
-def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db),
-                                current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
-    pass
-
 
 @app.get("/v1/queryMetrics")
 def test(current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
