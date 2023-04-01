@@ -273,31 +273,31 @@ def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db),
 
 
 @app.post("/v1/evaluations/competition/{c_id}/submissions/")
-def evaluate_submission(c_id: int, db: Session = Depends(infra.db.get_db),
-                        solution: UploadFile = File(...),
+def evaluate_submission(c_id: int, submission: UploadFile = File(...),
+                        db: Session = Depends(infra.db.get_db),
                         current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
-
     user_id = current_user.user_id
     number_submissions = db.query(infra.db.Submissions).filter(infra.db.Submissions.c_id == c_id).filter(
         infra.db.Submissions.user_id == user_id).count()
 
-    solution_file = solution.read()
+    solution_file = submission.file.read()
     file_name_submission = str(c_id) + "_" + str(user_id) + "_" + str(number_submissions + 1) + ".sql"
 
-    solution_file_path = os.path.join(CONTESTANT_SOLUTIONS, file_name_submission)
-    with open(solution_file_path, "w") as file:
+    submission_file_path = os.path.join(CONTESTANT_SOLUTIONS, file_name_submission)
+    with open(submission_file_path, "w") as file:
         file.write(solution_file.decode("utf-8"))
 
-    submission_file_path_row = db.query(infra.db.Submissions.submission).filter(
-        infra.db.Submissions.c_id == c_id and infra.db.Submissions.user_id == user_id).order_by(
-        desc(infra.db.Submissions.timestamp)).first()
+    submission_file_path_row = db.query(infra.db.Competitions.solution).filter(
+        infra.db.Competitions.c_id == c_id).first()
 
     for row in submission_file_path_row:
-        submission_file_path = row
+        solution_file_path = row
+
+    print("SOLUTION_FILE_PATH IS", solution_file_path)
 
     dbname = "c" + str(c_id)
 
-    c_engine = create_engine('postgresql://postgres:admin@localhost:5432/' + dbname, echo=True)
+    c_engine = create_engine('postgresql://test:test@localhost:5432/' + dbname, echo=True)
 
     connection = c_engine.connect()
     with c_engine.begin() as conn:
@@ -343,19 +343,19 @@ def evaluate_submission(c_id: int, db: Session = Depends(infra.db.get_db),
         score = score + pt + et + tt
 
     # update submission tables
-
-    x = db.query(infra.db.Submissions). \
-        filter(infra.db.Submissions.c_id == c_id,
-               infra.db.Submissions.user_id == user_id). \
-        order_by(desc(infra.db.Submissions.timestamp)). \
-        first()
-
-    if x:
-        x.score = score
-        db.commit()
-
-    # TODO changes for slowest - query_type
-
+    submission = infra.db.Submissions(
+        c_id=c_id,
+        user_id=user_id,
+        total_time=user_plan_time + user_exec_time,
+        planning_time=user_plan_time,
+        execution_time=user_exec_time,
+        score=score,
+        submission=submission_file_path,
+        timestamp="2023-04-01 16:42:00",
+        query_complexity=100
+    )
+    db.add(submission)
+    db.commit()
     return {"query_score": score}
 
 
