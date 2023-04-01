@@ -5,8 +5,8 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 import os
-#engine = create_engine('postgresql://postgres:admin@localhost:5432/leaderboard', echo=True)
-engine = create_engine(os.environ.get("DATABASE_URL"), echo=True)
+engine = create_engine('postgresql://postgres:admin@localhost:5432/leaderboard', echo=True)
+# engine = create_engine(os.environ.get("DATABASE_URL"), echo=True)
 #postgresql://leaderboard_znrw_user:XOQ9D9PKpb2sqG1dWfwMfgtnZQystb8D@dpg-cgioi9vdvk4vd54uoueg-a/leaderboard_znrw
 metadata = MetaData()
 connection = engine.connect()
