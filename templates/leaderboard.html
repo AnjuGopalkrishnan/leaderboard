@@ -86,19 +86,23 @@
         <thead>
             <tr>
                 <th>Rank</th>
-                <th>Name</th>
-                <th>Score</th>
+                <th>User Name</th>
+                <th>Submission Number</th>
+                <th>Planning Time</th>
+                <th>Execution Time</th>
+                <th>Total Time</th>
+                <th>Query Complexity</th>
             </tr>
         </thead>
         <tbody id="leaderboard-body">
         </tbody>
     </table>
     <button class ="back-button" id="back-button">Home</button>
-
-    <script>
+<script>
         const urlParams = new URLSearchParams(window.location.search);
         const accessToken = urlParams.get('access_token');
         const cId = urlParams.get('id');
+        console.log("id is "+ cId)
         const apiUrl = "/v1/competitions/leaderboard/"+cId;
 
         // Function to populate the leaderboard table with data from the API response
@@ -111,13 +115,28 @@
                 const row = document.createElement("tr");
                 const rank = document.createElement("td");
                 const name = document.createElement("td");
-                const score = document.createElement("td");
+                const submissionNumber = document.createElement("td");
+                const planningTime = document.createElement("td");
+                const executionTime = document.createElement("td");
+                const totalTime = document.createElement("td");
+                const queryComplexityScore = document.createElement("td");
+
                 rank.innerText = index + 1;
-                name.innerText = entry.name;
-                score.innerText = entry.score;
+                name.innerText = entry.username;
+                submissionNumber.innerText = 1;
+                planningTime.innerHTML = entry.planning_time;
+                executionTime.innerHTML = entry.execution_time;
+                totalTime.innerHTML = entry.total_time;
+                queryComplexityScore.innerHTML = entry.query_complexity;
+
                 row.appendChild(rank);
                 row.appendChild(name);
-                row.appendChild(score);
+                row.appendChild(submissionNumber);
+                row.appendChild(planningTime);
+                row.appendChild(executionTime);
+                row.appendChild(totalTime);
+                row.appendChild(queryComplexityScore);
+
                 leaderboardBody.appendChild(row);
             });
         };
@@ -130,11 +149,9 @@
         // Make the API call and populate the leaderboard on page load
         fetch(apiUrl, {
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
+                'Authorization': `Bearer ${accessToken}`
             }
-        })
-            .then(response => response.json())
+        }).then(response => response.json())
             .then(data => populateLeaderboard(data))
             .catch(error => handleApiError(error));
 

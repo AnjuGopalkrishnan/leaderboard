@@ -424,3 +424,9 @@ def test(current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
     query = "select * from users"
     print(current_user)
     return lib.metricCal.get_query_score(query)
+
+
+@app.get("/v1/userFromToken")
+def getUserFromToken(current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
+    user_id = current_user.user_id
+    return {"user_id": user_id}
