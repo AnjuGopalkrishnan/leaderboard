@@ -270,9 +270,7 @@ def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db),
 
 
 @app.post("/v1/evaluations/competition/{c_id}/submissions/{user_id}")
-def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.get_db),
-                        solution: UploadFile = File(...),
-                        current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
+def evaluate_submission(c_id: int, user_id: int, solution: UploadFile = File(...), db: Session = Depends(infra.db.get_db), current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
     number_submissions = db.query(infra.db.Submissions).filter(infra.db.Submissions.c_id == c_id).filter(
         infra.db.Submissions.user_id == user_id).count()
 
@@ -280,8 +278,11 @@ def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.
     file_name_submission = str(c_id) + "_" + str(user_id) + "_" + str(number_submissions + 1) + ".sql"
 
     solution_file_path = os.path.join(CONTESTANT_SOLUTIONS, file_name_submission)
-    with open(solution_file_path, "w") as file:
-        file.write(solution_file.decode("utf-8"))
+    try:
+        with open(solution_file_path, "w") as file:
+            file.write(solution_file.decode("utf-8"))
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Unable to open solution file")
 
     submission_file_path_row = db.query(infra.db.Submissions.submission).filter(
         infra.db.Submissions.c_id == c_id and infra.db.Submissions.user_id == user_id).order_by(
@@ -291,67 +292,59 @@ def evaluate_submission(c_id: int, user_id: int, db: Session = Depends(infra.db.
         submission_file_path = row
 
     dbname = "c" + str(c_id)
+    c_engine = create_engine('postgresql://postgres:admin@localhost:5432/'+dbname, echo=True)
 
-    c_engine = create_engine('postgresql://postgres:admin@localhost:5432/' + dbname, echo=True)
-
-    connection = c_engine.connect()
     with c_engine.begin() as conn:
-        with open(solution_file_path) as file:
-            query = text(file.read())
-            expected_result = conn.execute(query).all()
+        try:
+            with open(solution_file_path) as file:
+                query = text(file.read())
+                expected_result = conn.execute(query).all()
 
-        sum_plan_times = 0
-        sum_exec_times = 0
-        with open(submission_file_path) as file:
-            query = text(file.read())
-            user_result = conn.execute(query).all()
+            sum_plan_times = 0
+            sum_exec_times = 0
+            with open(submission_file_path) as file: 
+                file_query = file.read()           
+                query = text(file_query)
+                user_result = conn.execute(query).all()
 
-            # Take avg of 5 execution performance
-            for _ in range(5):
-                analyze_result_u = conn.execute(text(f'EXPLAIN ANALYZE {query}'))
-                for row in analyze_result_u:
-                    if ("Planning Time") in str(row):
-                        user_plan_time = float(re.findall(r'[\d]*[.][\d]+', str(row))[0])
-                        sum_plan_times = sum_plan_times + user_plan_time
+                if (user_result == expected_result):
+                    # Take avg of 100 execution performance
+                    for _ in range(100):
+                        analyze_result_u = conn.execute(text(f'EXPLAIN ANALYZE {query}'))
+                        for row in analyze_result_u:
+                            if ("Planning Time") in str(row):
+                                user_plan_time = float(re.findall(r'[\d]*[.][\d]+', str(row))[0])
+                                sum_plan_times = sum_plan_times + user_plan_time
 
-                    if ("Execution Time") in str(row):
-                        user_exec_time = float(re.findall(r'[\d]*[.][\d]+', str(row))[0])
-                        sum_exec_times = sum_exec_times + user_exec_time
-
-        user_plan_time = sum_plan_times / 5
-        user_exec_time = sum_exec_times / 5
-        conn.close()
-
-    connection.close()
-
-    score = 0
-    # Compare results
-    if (user_result == expected_result):
-        score = score + 1
-
-    # Further checks only if results match
-    if (score == 1):
-        max_time = 10
-        pt = max_time - user_plan_time
-        et = max_time - user_exec_time
-        tt = max_time - (user_plan_time + user_exec_time)
-        score = score + pt + et + tt
-
+                            if ("Execution Time") in str(row):
+                                user_exec_time = float(re.findall(r'[\d]*[.][\d]+', str(row))[0])
+                                sum_exec_times = sum_exec_times + user_exec_time
+                    complexity = lib.metricCal.get_query_complexity(file_query)
+                else:
+                    conn.close()
+                    return {"error": "Incorrect results"}
+            user_plan_time = sum_plan_times / 100
+            user_exec_time = sum_exec_times / 100
+            conn.close()
+        except Exception as e:
+            raise HTTPException(status_code=404, detail="Exception in metric calculation")
+        
     # update submission tables
-
     x = db.query(infra.db.Submissions). \
         filter(infra.db.Submissions.c_id == c_id,
                infra.db.Submissions.user_id == user_id). \
         order_by(desc(infra.db.Submissions.timestamp)). \
         first()
 
+    total_time = user_plan_time + user_exec_time
     if x:
-        x.score = score
+        x.planning_time = user_plan_time
+        x.execution_time = user_exec_time
+        x.total_time = user_plan_time + user_exec_time
+        x.query_complexity = complexity
         db.commit()
 
-    # TODO changes for slowest - query_type
-
-    return {"query_score": score}
+    return {"planning_time": user_plan_time, "execution_time": user_exec_time, "total_time": total_time, "query_complexity": complexity}
 
 
 @app.get("/v1/competitions/leaderboard/{competition_id}")

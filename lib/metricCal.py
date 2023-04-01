@@ -38,14 +38,13 @@ def get_query_complexity(query):
     operators = ['=', '<>', '>', '<', '>=', '<=', 'AND', 'OR', 'NOT', 'IN', 'LIKE']
 
     words = query.split()
-
     keyword_count = sum(word.upper() in keywords for word in words)
     operator_count = sum(word.upper() in operators for word in words)
 
-    identifier_count = len(words) - keyword_count - operator_count
+    #identifier_count = len(words) - keyword_count - operator_count
 
-    return {"keyword_count": keyword_count, "operator_count": operator_count, "identifier_count": identifier_count}
-
+    #return {"keyword_count": keyword_count, "operator_count": operator_count, "identifier_count": identifier_count}
+    return keyword_count+operator_count
 
 def get_query_score(query):
     max_time = 2000
