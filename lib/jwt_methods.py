@@ -20,7 +20,7 @@ def create_access_token(payload: dict, expires_delta: timedelta | None = None):
     if expires_delta:
         expires = datetime.utcnow() + expires_delta
     else:
-        expires = datetime.utcnow() + timedelta(minutes=60)
+        expires = datetime.utcnow() + timedelta(minutes=30)
     payload_copy.update({"exp": expires})
     token = jwt.encode(payload_copy, SECRET_KEY, algorithm=ALGORITHM)
     return token
