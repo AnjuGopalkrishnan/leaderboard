@@ -25,7 +25,7 @@
 
     .text {
         font-family: Arial, sans-serif; /* Change font family */
-        font-size: 18px; /* Increase font size */
+        font-size: 14px; /* Increase font size */
         line-height: 1.5; /* Add some line height for readability */
         color: #333; /* Change text color */
         text-align: justify; /* Justify the text for better alignment */
@@ -168,10 +168,10 @@
         </div>
         <div class="text">
             <h2>
-                Why a Query combat Competition?
+                Why a Query Combat Competition?
             </h2>
             <p>
-                Query Combat is the home of SQL competitions, with over 13 million users, ready to solve your SQL problems through competitions.
+                Query Combat is the home of SQL competitions, ready to solve your SQL problems through competitions.
 
                 You set the terms, Participants construct their query, and our website scores their queries in real time based on the metric selected by you, to find the winner. Competitions are the smart, simple way to tackle a tough business problem, educate students, or simply create a fun event.
 
@@ -190,7 +190,7 @@
                     </div>
 
                     <div class="form-field">
-                        <label for="description">Description:</label>
+                        <label for="description">Description and Problem Statement:</label>
                         <textarea id="description" name="description" required></textarea>
                     </div>
 
@@ -209,14 +209,6 @@
                             <input type="radio" name="queryType" value=1>
                             Slowest Query
                         </label>
-                    </div>
-
-
-                    <div class="form-field" id="query-container">
-                        <div class="query-row">
-                            <label for="query-input-0">Query:</label>
-                            <textarea id="query-input" class="query-input" name="query" required></textarea>
-                        </div>
                     </div>
 
                     <div class="form-field">
@@ -272,7 +264,6 @@
             console.log("Here");
             const titleInput = document.getElementById('title');
             const descriptionInput = document.getElementById('description');
-            const queryInput = document.getElementById('query-input');
             const selectedValue = document.querySelector('input[name="queryType"]:checked');
             const scheme = document.getElementById('schemaFile').files[0];
             const solution = document.getElementById('solution').files[0];
@@ -287,7 +278,6 @@
             formData.append('queryType', selectedValue.value);
             formData.append('schemaFile', scheme);
             formData.append('solution', solution);
-            formData.append('queryInput', queryInput.value);
             formData.append('metric', metric.value);
             
             fetch('/v1/competitions', {
