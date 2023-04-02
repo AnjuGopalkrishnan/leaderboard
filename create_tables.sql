@@ -21,7 +21,25 @@ TABLESPACE pg_default;
 ALTER TABLE IF EXISTS public.competitions
     OWNER to postgres;
 
+-- Table: public.users
 
+-- DROP TABLE IF EXISTS public.users;
+
+CREATE TABLE IF NOT EXISTS public.users
+(
+    user_id integer NOT NULL DEFAULT 'nextval('users_user_id_seq'::regclass)',
+    email character varying COLLATE pg_catalog."default" NOT NULL,
+    username character varying COLLATE pg_catalog."default" NOT NULL,
+    password character varying COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT users_pkey PRIMARY KEY (user_id, email, username),
+    CONSTRAINT users_user_id_key UNIQUE (user_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.users
+    OWNER to postgres;
+    
 -- Table: public.submissions
 
 -- DROP TABLE IF EXISTS public.submissions;
@@ -51,23 +69,4 @@ CREATE TABLE IF NOT EXISTS public.submissions
 TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.submissions
-    OWNER to postgres;
-
--- Table: public.users
-
--- DROP TABLE IF EXISTS public.users;
-
-CREATE TABLE IF NOT EXISTS public.users
-(
-    user_id integer NOT NULL DEFAULT 'nextval('users_user_id_seq'::regclass)',
-    email character varying COLLATE pg_catalog."default" NOT NULL,
-    username character varying COLLATE pg_catalog."default" NOT NULL,
-    password character varying COLLATE pg_catalog."default" NOT NULL,
-    CONSTRAINT users_pkey PRIMARY KEY (user_id, email, username),
-    CONSTRAINT users_user_id_key UNIQUE (user_id)
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.users
     OWNER to postgres;
