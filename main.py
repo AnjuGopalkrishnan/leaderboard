@@ -261,7 +261,8 @@ def get_competition_details(id: int, db: Session = Depends(infra.db.get_db),
 def download_competition_schema(c_id: int, db: Session = Depends(infra.db.get_db),
                                 current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
     try:
-        with open(os.path.join(SCHEMA_PATH, "c" + str(c_id) + ".sql"), mode="r") as file:
+        file_path = db.query(infra.db.Competitions).filter(infra.db.Competitions.c_id == c_id).first().schema
+        with open(file_path, mode="r") as file:
             file_data = file.read()
             file_like = io.StringIO(file_data)
             return StreamingResponse(iter(lambda: file_like.read(1024), ''), media_type="text/plain")
@@ -300,14 +301,12 @@ def evaluate_submission(c_id: int, submission: UploadFile = File(...),
             with open(solution_file_path) as file:
                 query = text(file.read())
                 expected_result = conn.execute(query).all()
-                print("expected_result:",expected_result)
             sum_plan_times = 0
             sum_exec_times = 0
             with open(submission_file_path) as file:
                 file_query = file.read()
                 query = text(file_query)
                 user_result = conn.execute(query).all()
-                print("user_result:",user_result)
                 if user_result == expected_result:
                     # Take avg of 100 execution performance
                     try:
