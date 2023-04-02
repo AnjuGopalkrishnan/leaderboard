@@ -105,8 +105,9 @@ def register(user: models.User, db: Session = Depends(infra.db.get_db)):
 @app.post("/v1/user/login")
 def login(user: models.UserLogin):
     values = {
-        'email': user.username,
+        'email': user.email,
     }
+    print(user)
     query = text("SELECT * FROM users WHERE email = :email LIMIT 1")
     with infra.db.engine.begin() as conn:
         res = conn.execute(query, values)
@@ -118,7 +119,7 @@ def login(user: models.UserLogin):
             detail="Incorrect username or password",
         )
 
-    if not lib.authenticate.verify_password(user.password, row[-1]):
+    if not lib.authenticate.verify_password(user.password, row[1]):
         raise HTTPException(
             status_code=401,
             detail="Incorrect username or password",
@@ -208,9 +209,14 @@ def create_competition(title: str = Form(...),
     current_comp_id = len(db.query(infra.db.Competitions).all()) + 1
     dbname = "c" + str(current_comp_id)
 
-    c_engine = create_engine("postgresql://postgres:admin@localhost:5432/" + dbname, isolation_level="AUTOCOMMIT")
+    c_engine = create_engine("postgresql://postgres:@localhost:5432/" + dbname, isolation_level="AUTOCOMMIT")
     if not database_exists(c_engine.url):
-        create_database(c_engine.url)
+        try:
+            create_database(c_engine.url)
+        except Exception:
+            raise HTTPException(status_code=404, detail="internal service error,code=DB")
+
+
 
     try:
         with c_engine.begin() as conn:
@@ -241,7 +247,7 @@ def create_competition(title: str = Form(...),
     except Exception as e:
         drop_database(c_engine.url)
         c_engine.dispose()
-        raise HTTPException(status_code=404, detail="Competition Schema not valid")
+        raise HTTPException(status_code=404, detail="Competition Schema not valid"+str(e))
 
 
 @app.get("/v1/competitions/overview/{id}")
