@@ -133,7 +133,7 @@ def login(user: models.UserLogin):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get("/v1/user/{id}/competitions")
+@app.get("/v1/user/competitions")
 def getcompetitions(current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
     user_id = current_user.user_id
     query = infra.db.submissions.select().where(infra.db.submissions.c.user_id == user_id)
