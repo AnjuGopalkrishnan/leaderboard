@@ -369,17 +369,17 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
 
     if query_type == 0:
         query = """
-        SELECT submissions.*
-        FROM submissions
+        SELECT c_id, a.user_id, a.submission, a.timestamp, a.planning_time, a.execution_time, a.total_time, a.query_complexity, a.attempt_number
+        FROM submissions a
         JOIN (
-          SELECT MIN(submissions.%(metric)s) AS best_time, submissions.user_id 
-          FROM submissions
-          WHERE submissions.c_id = %(c_id)s
-          GROUP BY submissions.user_id
+          SELECT MIN(b.%(metric)s) AS best_time, b.user_id 
+          FROM submissions b
+          WHERE b.c_id = %(c_id)s
+          GROUP BY b.user_id
         ) AS best_submissions
-        ON submissions.user_id = best_submissions.user_id AND submissions.%(metric)s = best_submissions.best_time
-        WHERE submissions.c_id = %(c_id)s
-        ORDER BY submissions.%(metric)s ASC
+        ON a.user_id = best_submissions.user_id AND a.%(metric)s = best_submissions.best_time
+        WHERE a.c_id = %(c_id)s
+        ORDER BY a.%(metric)s ASC
         """ % {"metric": metric, "c_id": c_id}
         # subquery = (
         #     select([func.min(infra.db.submissions.c[metric]).label("best_time"), infra.db.submissions.c.user_id])
@@ -399,31 +399,35 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
         # )
     elif query_type == 1:
         query = """
-        SELECT submissions.*
-        FROM submissions
+        SELECT a.c_id, a.user_id, submission, timestamp, planning_time, execution_time, total_time, query_complexity, attempt_number
+        FROM submissions a
         JOIN (
-          SELECT MIN(submissions.%(metric)s) AS best_time, submissions.user_id 
-          FROM submissions
-          WHERE submissions.c_id = %(c_id)s
-          GROUP BY submissions.user_id
+          SELECT MIN(b.%(metric)s) AS best_time, b.user_id 
+          FROM submissions b
+          WHERE b.c_id = %(c_id)s
+          GROUP BY b.user_id
         ) AS best_submissions
-        ON submissions.user_id = best_submissions.user_id AND submissions.%(metric)s = best_submissions.best_time
-        WHERE submissions.c_id = %(c_id)s
-        ORDER BY submissions.%(metric)s DESC
+        ON a.user_id = best_submissions.user_id AND a.%(metric)s = best_submissions.best_time
+        WHERE a.c_id = %(c_id)s
+        ORDER BY a.%(metric)s DESC
         """
     else:
         return {"error": "Invalid query type"}
+    
+    result = db.execute(text(query)).fetchall()
+    keys = ["c_id", "user_id", "submission", "timestamp", "planning_time", "execution_time", "total_time", "query_complexity", "attempt_number"]
+    submission_elements = []
+    for item in result:
+        submission_elements.append(dict(zip(keys,item)))
 
-    submissions = jsonable_encoder(db.execute(text(query)).fetchall())
-
-    for elem in submissions:
+    for elem in submission_elements:
         elem["username"] = user_id_to_username[elem["user_id"]]
         del elem["user_id"]
 
-    if not submissions:
+    if not submission_elements:
         raise HTTPException(status_code=404, detail="User Details not found")
 
-    return submissions
+    return submission_elements
 
 
 @app.get("/v1/queryMetrics")
