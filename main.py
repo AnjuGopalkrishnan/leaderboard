@@ -74,7 +74,6 @@ def home(request: Request):
     return templates.TemplateResponse("base.html", {"request": request})
 
 
-
 @app.get("/onecompetition.html")
 def home(request: Request):
     return templates.TemplateResponse("onecompetition.html", {"request": request})
@@ -134,25 +133,10 @@ def login(user: models.UserLogin):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get("/v1/user/{id}/hosted")
-def hosted(id, current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
-    query = infra.db.competitions.select().where(infra.db.competitions.c.host_user_id == id)
-    with infra.db.engine.begin() as conn:
-        res = conn.execute(query)
-
-    ansDict = []
-    for idx, row in enumerate(res):
-        tempDict = {}
-        for idx, key in enumerate(res.keys()):
-            tempDict[key] = row[idx]
-        ansDict.append(tempDict)
-
-    return ansDict
-
-
 @app.get("/v1/user/{id}/competitions")
-def getcompetitions(id, current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
-    query = infra.db.submissions.select().where(infra.db.submissions.c.user_id == id)
+def getcompetitions(current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
+    user_id = current_user.user_id
+    query = infra.db.submissions.select().where(infra.db.submissions.c.user_id == user_id)
     with infra.db.engine.begin() as conn:
         res = conn.execute(query)
 
@@ -194,7 +178,6 @@ def search_competition(name: str, db: Session = Depends(infra.db.get_db),
 
 @app.post("/v1/competitions")
 def create_competition(title: str = Form(...),
-                       hostUserId: str = Form(...),
                        description: str = Form(...),
                        queryType: str = Form(...),
                        metric: str = Form(...),
@@ -202,6 +185,8 @@ def create_competition(title: str = Form(...),
                        solution: UploadFile = File(...),
                        db: Session = Depends(infra.db.get_db),
                        current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
+
+    hostUserId = current_user.user_id
     cur_time = datetime.now()
     dt_string = cur_time.strftime("%d/%m/%Y %H:%M:%S")
 
@@ -265,21 +250,11 @@ def get_competition_details(id: int, db: Session = Depends(infra.db.get_db),
 
     return competition_dict
 
-
-@app.get("/v1/competitions/leaderboard/{competition_id}/{user_id}")
-def get_leaderboard_user_details(user_id: int, competition_id: int, db: Session = Depends(infra.db.get_db)):
-    user_submissions = db.query(infra.db.Submissions).filter(
-        infra.db.Submissions.user_id == user_id and infra.db.Submissions.c_id == competition_id).all()
-    if not user_submissions:
-        raise HTTPException(status_code=404, detail="User Details not found")
-    return user_submissions
-
-
-@app.get("/v1/competitions/{id}/download")
-def download_competition_schema(id: int, db: Session = Depends(infra.db.get_db),
+@app.get("/v1/competitions/{c_id}/download")
+def download_competition_schema(c_id: int, db: Session = Depends(infra.db.get_db),
                                 current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
     try:
-        with open(os.path.join(SCHEMA_PATH, "c" + str(id) + ".sql"), mode="r") as file:
+        with open(os.path.join(SCHEMA_PATH, "c" + str(c_id) + ".sql"), mode="r") as file:
             file_data = file.read()
             file_like = io.StringIO(file_data)
             return StreamingResponse(iter(lambda: file_like.read(1024), ''), media_type="text/plain")
@@ -432,6 +407,7 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
         raise HTTPException(status_code=404, detail="User Details not found")
 
     return submissions
+
 
 @app.get("/v1/queryMetrics")
 def test(current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
