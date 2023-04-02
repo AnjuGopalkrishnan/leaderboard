@@ -44,6 +44,10 @@ if not os.path.exists(SCHEMA_PATH):
 if not os.path.exists(ANS_PATH):
     os.mkdir(ANS_PATH)
 
+if not os.path.exists(CONTESTANT_SOLUTIONS):
+    os.mkdir(CONTESTANT_SOLUTIONS)
+
+
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/user/login")
@@ -113,7 +117,7 @@ def login(user: models.UserLogin):
         'email': user.email,
     }
 
-    query = text("SELECT * FROM users WHERE email = :email LIMIT 1")
+    query = text("SELECT * FROM users WHERE email = :email")
     with infra.db.engine.begin() as conn:
         res = conn.execute(query, values)
 
@@ -199,7 +203,7 @@ def create_competition(title: str = Form(...),
     current_comp_id = len(db.query(infra.db.Competitions).all()) + 1
     dbname = "c" + str(current_comp_id)
 
-    c_engine = create_engine("postgresql://postgres:@localhost:5432/" + dbname, isolation_level="AUTOCOMMIT")
+    c_engine = create_engine("postgresql://test:test@localhost:5432/" + dbname, isolation_level="AUTOCOMMIT")
     if not database_exists(c_engine.url):
         try:
             create_database(c_engine.url)
@@ -289,7 +293,7 @@ def evaluate_submission(c_id: int, submission: UploadFile = File(...),
 
     dbname = "c" + str(c_id)
 
-    c_engine = create_engine('postgresql://postgres:admin@localhost:5432/' + dbname, echo=True)
+    c_engine = create_engine('postgresql://test:test@localhost:5432/' + dbname, echo=True)
 
     with c_engine.begin() as conn:
         
