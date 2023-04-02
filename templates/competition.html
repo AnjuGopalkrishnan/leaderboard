@@ -52,6 +52,18 @@
             gap: 10px; /* Adjust the gap between buttons as needed */
         }
 
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
     </style>
 </head>
 <body>
@@ -70,6 +82,8 @@
         </div>
         <br />
         <br />
+
+        <button class="back-button" id="back-button" onclick="logout()">Logout</button>
 
         <div>
             <input type="text" class="form-field" id="searchBox" style="width: 75%;" placeholder="Search competitions">
@@ -113,7 +127,36 @@
         console.log("here AT is " + accessToken);
         const userId = 10;
 
-        function reset() {
+        function logout() {
+            window.location.href = "base.html";
+        }
+
+
+
+async function getUserIDFromServer() {
+  try {
+    const response = await fetch('/v1/userFromToken', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Failed to get user ID from server');
+    }
+    const data = await response.json();
+    return data.user_id;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+
+
+
+        async function reset() {
+            const uId = await getUserIDFromServer();
 
             fetch("/v1/competitions", {
                 headers: {
@@ -141,7 +184,10 @@
                                         .text('Leaderboard')
                                         .attr("data-id", competition.c_id))
                                     .append(function () {
-                                        if (userId != competition.host_user_id) {
+                                        console.log('Got user ID:' + uId);
+
+                                        if (uId != competition.host_user_id) {
+                                            console.log("UID is " + uId);
                                             return $('<a href="#" class="btn btn-primary ml-2">')
                                                 .text('Participate')
                                                 .attr("data-id", competition.c_id)
@@ -160,7 +206,8 @@
         }
 
 
-        function search() {
+        async function search() {
+            const uId = await getUserIDFromServer();
             var searchTerm = document.getElementById("searchBox").value;
             console.log("Search term entered: " + searchTerm);
 
@@ -195,7 +242,8 @@
                                         .text('Leaderboard')
                                         .attr("data-id", competition.c_id))
                                     .append(function () {
-                                        if (userId != competition.host_user_id) {
+                                        if (uId != competition.host_user_id) {
+
                                             return $('<a href="#" class="btn btn-primary ml-2">')
                                                 .text('Participate')
                                                 .attr("data-id", competition.c_id)
@@ -218,7 +266,9 @@
             window.location.href = "hostcompetition.html?access_token=" + accessToken;
         }
 
-        $(document).ready(function () {
+        $(document).ready(async function () {
+            const uId = await getUserIDFromServer();
+
             // Make Fetch API call to fetch competition data
             fetch("/v1/competitions", {
                 headers: {
@@ -243,7 +293,7 @@
                                         .text('Leaderboard')
                                         .attr("data-id", competition.c_id))
                                     .append(function () {
-                                        if (userId != competition.host_user_id) {
+                                        if (uId != competition.host_user_id) {
                                             return $('<a href="#" class="btn btn-primary ml-2">')
                                                 .text('Participate')
                                                 .attr("data-id", competition.c_id)

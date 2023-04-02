@@ -78,6 +78,19 @@
             cursor: pointer;
         }
 
+        .logout-button {
+            position: fixed;
+            top: 20px;
+            right: 100px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+
     </style>
 </head>
 <body>
@@ -88,22 +101,30 @@
                 <th>Rank</th>
                 <th>User Name</th>
                 <th>Submission Number</th>
-                <th>Planning Time</th>
-                <th>Execution Time</th>
-                <th>Total Time</th>
+                <th>Planning Time (ms)</th>
+                <th>Execution Time (ms)</th>
+                <th>Total Time (ms)</th>
                 <th>Query Complexity</th>
             </tr>
         </thead>
         <tbody id="leaderboard-body">
         </tbody>
     </table>
-    <button class ="back-button" id="back-button">Home</button>
-<script>
+    <button class="logout-button" id="logout-button" onclick="logout()">Logout</button>
+    <button class="back-button" id="back-button">Home</button>
+    <script>
+
+
         const urlParams = new URLSearchParams(window.location.search);
         const accessToken = urlParams.get('access_token');
         const cId = urlParams.get('id');
-        console.log("id is "+ cId)
-        const apiUrl = "/v1/competitions/leaderboard/"+cId;
+        console.log("id is " + cId)
+        const apiUrl = "/v1/competitions/leaderboard/" + cId;
+
+        function logout() {
+            window.location.href = "base.html";
+        }
+
 
         // Function to populate the leaderboard table with data from the API response
         const populateLeaderboard = (data) => {
