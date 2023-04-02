@@ -52,6 +52,18 @@
             gap: 10px; /* Adjust the gap between buttons as needed */
         }
 
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
     </style>
 </head>
 <body>
@@ -70,6 +82,8 @@
         </div>
         <br />
         <br />
+
+        <button class="back-button" id="back-button" onclick="logout()">Logout</button>
 
         <div>
             <input type="text" class="form-field" id="searchBox" style="width: 75%;" placeholder="Search competitions">
@@ -113,6 +127,40 @@
         console.log("here AT is " + accessToken);
         const userId = 10;
 
+        function logout() {
+            window.location.href = "base.html";
+        }
+
+
+
+        function getUserIdFromServer() {
+            fetch('/v1/userFromToken', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to get user ID from server');
+                    }
+                })
+                .then(data => {
+                    const userId = data.user_id;
+                    console.log('Got user ID:', userId);
+                    return userId;
+                    // Do something with the user ID, e.g. update the UI
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
+
+
+
+
         function reset() {
 
             fetch("/v1/competitions", {
@@ -141,6 +189,8 @@
                                         .text('Leaderboard')
                                         .attr("data-id", competition.c_id))
                                     .append(function () {
+                                        uId = getUserIdFromServer();
+                                        console.log("UID is " + uId);
                                         if (userId != competition.host_user_id) {
                                             return $('<a href="#" class="btn btn-primary ml-2">')
                                                 .text('Participate')

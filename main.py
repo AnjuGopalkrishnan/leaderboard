@@ -69,6 +69,12 @@ def home(request: Request):
     return templates.TemplateResponse("competition.html", {"request": request})
 
 
+@app.get("/base.html")
+def home(request: Request):
+    return templates.TemplateResponse("base.html", {"request": request})
+
+
+
 @app.get("/onecompetition.html")
 def home(request: Request):
     return templates.TemplateResponse("onecompetition.html", {"request": request})

@@ -168,42 +168,64 @@
             cursor: pointer;
         }
 
+        .logout-button {
+            position: fixed;
+            top: 20px;
+            right: 95px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
 
     </style>
 </head>
 <body onload="myFunction()">
-<div class="container">
-    <h2 id="header"></h2>
-    <h3>Problem Description</h3>
-    <p id="para"></p>
-    <h3>Database Schema</h3>
-    <button type="submit" id="submit" onclick="downloadFile()">Download File</button>
-    <h3>Submission</h3>
-    <div class="form-field">
-        <label for="file">Solution File:</label>
-        <input type="file" id="submission" name="file" required>
-    </div>
-
-
-    <form>
-        <div class="button-container">
-            <button type="submit" id="submit" name="Submit">Make Submission</button>
-            <button type="submit" id="submit" onclick="leaderBoard()">Leaderboard</button>
+    <div class="container">
+        <h2 id="header"></h2>
+        <h3>Problem Description</h3>
+        <p id="para"></p>
+        <h3>Database Schema</h3>
+        <button type="submit" id="submit" onclick="downloadFile()">Download File</button>
+        <h3>Submission</h3>
+        <div class="form-field">
+            <label for="file">Solution File:</label>
+            <input type="file" id="submission" name="file" required>
         </div>
-    </form>
 
-    <button class="back-button" id="back-button" onclick="redirect()">Back</button>
 
-    <div id="error-message" style="display: none; color: red;">
-        Host cannot make submissions for their competition
+        <div id="error-message">
+        </div>
+        <form>
+            <div class="button-container">
+                <button type="submit" id="submit" name="Submit">Make Submission</button>
+                <button type="submit" id="submit" onclick="leaderBoard()">Leaderboard</button>
+            </div>
+        </form>
+
+        <div class="button-container">
+            <button class="back-button" id="back-button" onclick="redirect()">Back</button>
+            <button class="logout-button" id="logout-button" onclick="logout()">Logout</button>
+        </div>
+
+        <div id="error-message" style="display: none; color: red;">
+            Host cannot make submissions for their competition
+        </div>
     </div>
-</div>
 
 <script>
 
             const urlParams = new URLSearchParams(window.location.search);
             const accessToken = urlParams.get('access_token');
             const id = urlParams.get('id');
+
+            function logout() {
+                window.location.href = "base.html";
+            }
+
 
             function leaderBoard() {
                 window.location.href = "leaderboard.html?access_token=" + accessToken + '&id='+id;
@@ -293,8 +315,12 @@
                                       })
                                           .then(response => {
                                               if (!response.ok) {
+                                                  document.getElementById("error-message").innerHTML = 'Your previous submission was not valid, please recheck the SQL file uploaded and re-submit';
+                                                  document.getElementById("error-message").style.color = "red";
                                                   throw new Error(`HTTP error! status: ${response.status}`);
                                               }
+                                              document.getElementById("error-message").innerHTML = 'Your previous submission was valid, please click on the LeaderBoard option to view your results';
+                                              document.getElementById("error-message").style.color = "green";
                                               return response.json();
                                           })
                                           .catch(error => console.error(error));
