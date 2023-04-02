@@ -177,6 +177,12 @@
 
                 You bring the problem and the data, and Query Combat brings the platform.
             </p>
+            <h2>
+                Query Complexity Score
+            </h2>
+            <p>
+                The complexity of a database query is determined by counting the number of keywords, such as "JOIN", and operators used in the query. A higher score indicates a more complex query.
+            </p>
             <button class="back-button" id="back-button" onclick="redirect()">Back</button>
 
             <button class="logout-button" id="logout-button" onclick="logout()">Logout</button>
@@ -200,6 +206,16 @@
                     </div>
 
                     <div class="form-field">
+                        <label for="metric">Metric To Judge:</label>
+                        <select id="metric" onchange="changeRankingNames()">
+                            <option value="0" selected>Execution Time </option>
+                            <option value="1">Planning Time </option>
+                            <option value="2">Total Time</option>
+                            <option value="3">Query Complexity</option>
+                        </select>
+                    </div>
+
+                    <div class="form-field">
                         <label for="radio options">Ranking:</label>
                         <label id="fastest">
                             <input type="radio" name="queryType" value=0 checked>
@@ -209,16 +225,6 @@
                             <input type="radio" name="queryType" value=1>
                             Slowest query wins
                         </label>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="metric">Metric To Judge:</label>
-                        <select id="metric" onchange="changeRankingNames()">
-                            <option value="0" selected>Execution Time </option>
-                            <option value="1">Planning Time </option>
-                            <option value="2">Total Time</option>
-                            <option value="3">Query Complexity</option>
-                        </select>
                     </div>
 
 

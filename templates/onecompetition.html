@@ -188,6 +188,12 @@
         <h2 id="header"></h2>
         <h3>Problem Description</h3>
         <p id="para"></p>
+        <h3>
+            Query Complexity Score
+        </h3>
+        <p>
+            The complexity of a database query is determined by counting the number of keywords, such as "JOIN", and operators used in the query. A higher score indicates a more complex query.
+        </p>
         <h3>Database Schema</h3>
         <button type="submit" id="submit" onclick="downloadFile()">Download File</button>
         <h3>Submission</h3>
@@ -241,7 +247,6 @@
 
 
             function myFunction() {
-                var userId = 2;
                 console.log(window.location.href);
                 const urlParams = new URLSearchParams(window.location.search);
                 const competitionId = urlParams.get('id');
@@ -256,11 +261,6 @@
                 })
                     .then(response => response.json())
                     .then(data => {
-                        if (userId == data.host_user_id) {
-                            document.getElementById("submission").disabled = true;
-                            document.getElementById("submit-btn").disabled = true;
-                            document.getElementById("error-message").style.display = 'block';
-                        }
                         document.getElementById("header").innerHTML = data.title;
                         document.getElementById("para").innerHTML = data.description;
                     });
@@ -294,7 +294,6 @@
             function handleSubmit(event) {
 
 
-                //const inputForm = document.getElementById("form");
 
                 event.preventDefault();
                 console.log("Here");
@@ -315,7 +314,7 @@
                                       })
                                           .then(response => {
                                               if (!response.ok) {
-                                                  document.getElementById("error-message").innerHTML = 'Your submission was not valid, please recheck the SQL file uploaded and re-submit';
+                                                  document.getElementById("error-message").innerHTML = 'Your submission was not valid or did not match the expected results, please recheck the SQL file uploaded and re-submit';
                                                   document.getElementById("error-message").style.color = "red";
                                                   throw new Error(`HTTP error! status: ${response.status}`);
                                               }
