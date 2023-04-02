@@ -130,7 +130,7 @@ def login(user: models.UserLogin):
             detail="Incorrect username or password",
         )
     #    print("user is ", user)
-    access_token = jwt_methods.create_access_token(payload={"username": user.username})
+    access_token = jwt_methods.create_access_token(payload={"username": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
 
