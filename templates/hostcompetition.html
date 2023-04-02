@@ -200,20 +200,20 @@
                     </div>
 
                     <div class="form-field">
-                        <label for="radio options">Query Type:</label>
-                        <label>
+                        <label for="radio options">Ranking:</label>
+                        <label id="fastest">
                             <input type="radio" name="queryType" value=0 checked>
-                            Fastest Query
+                            Fastest query wins
                         </label>
-                        <label>
+                        <label id="slowest">
                             <input type="radio" name="queryType" value=1>
-                            Slowest Query
+                            Slowest query wins
                         </label>
                     </div>
 
                     <div class="form-field">
                         <label for="metric">Metric To Judge:</label>
-                        <select id="metric">
+                        <select id="metric" onchange="changeRankingNames()">
                             <option value="0" selected>Execution Time </option>
                             <option value="1">Planning Time </option>
                             <option value="2">Total Time</option>
@@ -238,7 +238,12 @@
         </div>
         </div>
     <script>
-
+        function changeRankingNames(){
+            if(document.getElementById("metric").value == "3"){
+                document.getElementById("fastest").innerHTML = "<input type='radio' name='queryType' value=0 checked> Simple query wins";
+                document.getElementById("slowest").innerHTML = "<input type='radio' name='queryType' value=1> Complex query wins";
+            }
+        }
         function logout() {
             window.location.href = "base.html";
         }
