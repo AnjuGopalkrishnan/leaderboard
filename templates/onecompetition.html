@@ -315,11 +315,11 @@
                                       })
                                           .then(response => {
                                               if (!response.ok) {
-                                                  document.getElementById("error-message").innerHTML = 'Your previous submission was not valid, please recheck the SQL file uploaded and re-submit';
+                                                  document.getElementById("error-message").innerHTML = 'Your submission was not valid, please recheck the SQL file uploaded and re-submit';
                                                   document.getElementById("error-message").style.color = "red";
                                                   throw new Error(`HTTP error! status: ${response.status}`);
                                               }
-                                              document.getElementById("error-message").innerHTML = 'Your previous submission was valid, please click on the LeaderBoard option to view your results';
+                                              document.getElementById("error-message").innerHTML = 'Your submission was valid, please click on the LeaderBoard option to view your results';
                                               document.getElementById("error-message").style.color = "green";
                                               return response.json();
                                           })
