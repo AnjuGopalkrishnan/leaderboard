@@ -34,9 +34,9 @@ metric_mapping = {
     3: "query_complexity",
 }
 
-SCHEMA_PATH = "schemas"
-ANS_PATH = "answers"
-CONTESTANT_SOLUTIONS = "solutions"
+SCHEMA_PATH = "https://sql-leaderboard.onrender.com/schemas"
+ANS_PATH = "https://sql-leaderboard.onrender.com/answers"
+CONTESTANT_SOLUTIONS = "https://sql-leaderboard.onrender.com/solutions"
 
 if not os.path.exists(SCHEMA_PATH):
     os.mkdir(SCHEMA_PATH)
