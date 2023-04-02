@@ -145,9 +145,9 @@
                 rank.innerText = index + 1;
                 name.innerText = entry.username;
                 submissionNumber.innerText = 1;
-                planningTime.innerHTML = entry.planning_time;
-                executionTime.innerHTML = entry.execution_time;
-                totalTime.innerHTML = entry.total_time;
+                planningTime.innerHTML = entry.planning_time.toFixed(4);
+                executionTime.innerHTML = entry.execution_time.toFixed(4);
+                totalTime.innerHTML = entry.total_time.toFixed(4);
                 queryComplexityScore.innerHTML = entry.query_complexity;
 
                 row.appendChild(rank);
