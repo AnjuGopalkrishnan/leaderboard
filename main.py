@@ -128,7 +128,7 @@ def login(user: models.UserLogin):
             detail="Incorrect username or password",
         )
 
-    if not lib.authenticate.verify_password(user.password, row["password"]):
+    if not lib.authenticate.verify_password(user.password, row[-1]):
         raise HTTPException(
             status_code=401,
             detail="Incorrect username or password",
