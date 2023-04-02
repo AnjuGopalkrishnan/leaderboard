@@ -410,7 +410,7 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
         ON a.user_id = best_submissions.user_id AND a.%(metric)s = best_submissions.best_time
         WHERE a.c_id = %(c_id)s
         ORDER BY a.%(metric)s DESC
-        """
+        """  % {"metric": metric, "c_id": c_id}
     else:
         return {"error": "Invalid query type"}
     
