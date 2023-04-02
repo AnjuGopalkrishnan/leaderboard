@@ -112,7 +112,7 @@ def login(user: models.UserLogin):
     values = {
         'email': user.email,
     }
-    print(user)
+
     query = text("SELECT * FROM users WHERE email = :email LIMIT 1")
     with infra.db.engine.begin() as conn:
         res = conn.execute(query, values)
@@ -124,7 +124,7 @@ def login(user: models.UserLogin):
             detail="Incorrect username or password",
         )
 
-    if not lib.authenticate.verify_password(user.password, row[1]):
+    if not lib.authenticate.verify_password(user.password, row["password"]):
         raise HTTPException(
             status_code=401,
             detail="Incorrect username or password",
@@ -186,7 +186,6 @@ def create_competition(title: str = Form(...),
                        solution: UploadFile = File(...),
                        db: Session = Depends(infra.db.get_db),
                        current_user: infra.db.User = Depends(jwt_methods.get_current_user)):
-
     hostUserId = current_user.user_id
     cur_time = datetime.now()
     dt_string = cur_time.strftime("%d/%m/%Y %H:%M:%S")
@@ -206,8 +205,6 @@ def create_competition(title: str = Form(...),
             create_database(c_engine.url)
         except Exception:
             raise HTTPException(status_code=404, detail="internal service error,code=DB")
-
-
 
     try:
         with c_engine.begin() as conn:
@@ -238,7 +235,7 @@ def create_competition(title: str = Form(...),
     except Exception as e:
         drop_database(c_engine.url)
         c_engine.dispose()
-        raise HTTPException(status_code=404, detail="Competition Schema not valid"+str(e))
+        raise HTTPException(status_code=404, detail="Competition Schema not valid")
 
 
 @app.get("/v1/competitions/overview/{id}")

@@ -29,7 +29,7 @@
                               <h6 class="font-weight-light">Sign in to continue.</h6>
                               <form class="pt-3">
                                   <div class="form-group">
-                                      <input type="email" class="form-control form-control-lg" id="userEmail" placeholder="Username" required />
+                                      <input type="email" class="form-control form-control-lg" id="userEmail" placeholder="Email ID" required />
                                   </div>
                                   <div class="form-group">
                                       <input type="password" class="form-control form-control-lg" id="userPassword" placeholder="Password" required />
@@ -48,7 +48,7 @@
                               <script>
                                   function handleSubmit(event) {
                                       event.preventDefault();
-                                      const params = { username: document.getElementById("userEmail").value, password: document.getElementById("userPassword").value };
+                                      const params = { email: document.getElementById("userEmail").value, password: document.getElementById("userPassword").value };
                                       const req_json = JSON.stringify(params);
 
                                       fetch('/v1/user/login', {

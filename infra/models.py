@@ -8,9 +8,8 @@ class User(BaseModel):
     email: str
 
 class UserLogin(BaseModel):
-    username: str
-    password: str
     email: str
+    password: str
 
 
 
