@@ -368,43 +368,53 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
     query_type = int(competition[0])
 
     if query_type == 0:
-        subquery = (
-            select([func.min(infra.db.submissions.c[metric]).label("best_time"), infra.db.submissions.c.user_id])
-            .where(infra.db.submissions.c.c_id == c_id)
-            .group_by(infra.db.submissions.c.user_id)
-            .alias("best_submissions")
-        )
-
-        query = (
-            select([infra.db.submissions])
-            .select_from(infra.db.submissions.join(subquery, and_(
-                infra.db.submissions.c.user_id == subquery.c.user_id,
-                infra.db.submissions.c[metric] == subquery.c.best_time
-            )))
-            .where(infra.db.submissions.c.c_id == c_id)
-            .order_by(asc(infra.db.submissions.c[metric]))
-        )
+        query = """
+        SELECT submissions.*
+        FROM submissions
+        JOIN (
+          SELECT MIN(submissions.%(metric)s) AS best_time, submissions.user_id 
+          FROM submissions
+          WHERE submissions.c_id = %(c_id)s
+          GROUP BY submissions.user_id
+        ) AS best_submissions
+        ON submissions.user_id = best_submissions.user_id AND submissions.%(metric)s = best_submissions.best_time
+        WHERE submissions.c_id = %(c_id)s
+        ORDER BY submissions.%(metric)s ASC
+        """ % {"metric": metric, "c_id": c_id}
+        # subquery = (
+        #     select([func.min(infra.db.submissions.c[metric]).label("best_time"), infra.db.submissions.c.user_id])
+        #     .where(infra.db.submissions.c.c_id == c_id)
+        #     .group_by(infra.db.submissions.c.user_id)
+        #     .alias("best_submissions")
+        # )
+        #
+        # query = (
+        #     select([infra.db.submissions])
+        #     .select_from(infra.db.submissions.join(subquery, and_(
+        #         infra.db.submissions.c.user_id == subquery.c.user_id,
+        #         infra.db.submissions.c[metric] == subquery.c.best_time
+        #     )))
+        #     .where(infra.db.submissions.c.c_id == c_id)
+        #     .order_by(asc(infra.db.submissions.c[metric]))
+        # )
     elif query_type == 1:
-        subquery = (
-            select([func.max(infra.db.submissions.c[metric]).label("best_time"), infra.db.submissions.c.user_id])
-            .where(infra.db.submissions.c.c_id == c_id)
-            .group_by(infra.db.submissions.c.user_id)
-            .alias("best_submissions")
-        )
-
-        query = (
-            select([infra.db.submissions])
-            .select_from(infra.db.submissions.join(subquery, and_(
-                infra.db.submissions.c.user_id == subquery.c.user_id,
-                infra.db.submissions.c[metric] == subquery.c.best_time
-            )))
-            .where(infra.db.submissions.c.c_id == c_id)
-            .order_by(desc(infra.db.submissions.c[metric]))
-        )
+        query = """
+        SELECT submissions.*
+        FROM submissions
+        JOIN (
+          SELECT MIN(submissions.%(metric)s) AS best_time, submissions.user_id 
+          FROM submissions
+          WHERE submissions.c_id = %(c_id)s
+          GROUP BY submissions.user_id
+        ) AS best_submissions
+        ON submissions.user_id = best_submissions.user_id AND submissions.%(metric)s = best_submissions.best_time
+        WHERE submissions.c_id = %(c_id)s
+        ORDER BY submissions.%(metric)s DESC
+        """
     else:
         return {"error": "Invalid query type"}
 
-    submissions = jsonable_encoder(db.execute(query).fetchall())
+    submissions = jsonable_encoder(db.execute(text(query)).fetchall())
 
     for elem in submissions:
         elem["username"] = user_id_to_username[elem["user_id"]]
