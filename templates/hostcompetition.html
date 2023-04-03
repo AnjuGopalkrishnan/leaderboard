@@ -177,12 +177,6 @@
 
                 You bring the problem and the data, and Query Combat brings the platform.
             </p>
-            <h2>
-                Query Complexity Score
-            </h2>
-            <p>
-                The complexity of a database query is determined by counting the number of keywords, such as "JOIN", and operators used in the query. A higher score indicates a more complex query.
-            </p>
             <button class="back-button" id="back-button" onclick="redirect()">Back</button>
 
             <button class="logout-button" id="logout-button" onclick="logout()">Logout</button>
@@ -205,8 +199,10 @@
                         <input type="file" id="schemaFile" name="file" required>
                     </div>
 
+
                     <div class="form-field">
                         <label for="metric">Metric To Judge:</label>
+                        <a href="#" onclick="loadMetrics()">Description of metrics</a>
                         <select id="metric" onchange="changeRankingNames()">
                             <option value="0" selected>Execution Time </option>
                             <option value="1">Planning Time </option>
@@ -262,6 +258,10 @@
             const urlParams = new URLSearchParams(window.location.search);
             const accessToken = urlParams.get('access_token');
             window.location.href = "competition.html?access_token=" + accessToken;
+        }
+
+        function loadMetrics() {
+            window.location.href = "metricsDescription.html?access_token=" + accessToken;
         }
 
 

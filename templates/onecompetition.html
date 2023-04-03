@@ -188,12 +188,11 @@
         <h2 id="header"></h2>
         <h3>Problem Description</h3>
         <p id="para"></p>
-        <h3>
-            Query Complexity Score
-        </h3>
-        <p>
-            The complexity of a database query is determined by counting the number of keywords, such as "JOIN", and operators used in the query. A higher score indicates a more complex query.
-        </p>
+        <h3>Evaluation Metric</h3>
+        <p id="metric"></p>
+        <h3>Query Ranking</h3>
+        <p id="queryType"></p>
+
         <h3>Database Schema</h3>
         <button type="submit" id="submit" onclick="downloadFile()">Download File</button>
         <h3>Submission</h3>
@@ -201,6 +200,7 @@
             <label for="file">Solution File:</label>
             <input type="file" id="submission" name="file" required>
         </div>
+
 
 
         <div id="error-message">
@@ -263,6 +263,50 @@
                     .then(data => {
                         document.getElementById("header").innerHTML = data.title;
                         document.getElementById("para").innerHTML = data.description;
+                        console.log("Here the metric is " + data.metric);
+                        const metric = data.metric;
+                        const queryType = data.query_type;
+                        console.log("Query type is " + queryType);
+                        if (metric == 3) {
+                            console.log("It is a complexity related query");
+                            document.getElementById("metric").innerHTML = "This competition will be judged based on the Complexity of your query. The complexity of a query is determined by counting the number of keywords, such as 'JOIN', and operators used in the query. A higher score indicates a more complex query.";
+                            if (queryType == 0) {
+                                document.getElementById("queryType").innerHTML = "Simple query wins";
+                            }
+                            else {
+                                document.getElementById("queryType").innerHTML = "Complex query wins";
+                            }
+                        }
+                        else if (metric == 0) {
+                            console.log("It is a execution time query");
+                            document.getElementById("metric").innerHTML = "This competition will be judged based on the execution time of your query. Execution time refers to the time taken by the server to execute a SQL query and return the result to the client. Execution time is measured from the time the query execution starts until the result is returned to the client. It includes the time taken to fetch data from the disk, execute joins and other operations, and send the result back to the client.";
+                            if (queryType == 0) {
+                                document.getElementById("queryType").innerHTML = "A query with lower execution time will be ranked higher, i.e The Fastest query wins";
+                            }
+                            else {
+                                document.getElementById("queryType").innerHTML = "A query with higher execution time will be ranked higher, i.e The Slowest query wins";
+                            }
+                        }
+                        else if (metric == 1) {
+                            console.log("It is a plannig time query");
+                            document.getElementById("metric").innerHTML = "This competition will be judged based on the planning time of your query. Planning time refers to the time taken by the query planner to generate an execution plan for a given SQL query. When a SQL query is submitted to the database, the query planner analyzes the query and generates an optimal execution plan for that query. The execution plan outlines how the database will execute the query and what indexes, joins, or other operations will be used to retrieve the data.Planning time is measured from the time the query is received by the server until the execution plan is generated.";
+                            if (queryType == 0) {
+                                document.getElementById("queryType").innerHTML = "A query with lower planning time will be ranked higher, i.e The Fastest query wins";
+                            }
+                            else {
+                                document.getElementById("queryType").innerHTML = "A query with higher planning time will be ranked higher, i.e The Slowest query wins";
+                            }
+                        }
+                        else  {
+                            console.log("It is a total time query");
+                            document.getElementById("metric").innerHTML = "This competition will be judged based on the total time of your query. Total time is the sum of the execution time and the planning time. Planning time refers to the time taken by the query planner to generate an execution plan for a given SQL query. When a SQL query is submitted to the database, the query planner analyzes the query and generates an optimal execution plan for that query. The execution plan outlines how the database will execute the query and what indexes, joins, or other operations will be used to retrieve the data.Planning time is measured from the time the query is received by the server until the execution plan is generated.                 Execution time refers to the time taken by the server to execute a SQL query and return the result to the client. Execution time is measured from the time the query execution starts until the result is returned to the client. It includes the time taken to fetch data from the disk, execute joins and other operations, and send the result back to the client.";
+                            if (queryType == 0) {
+                                document.getElementById("queryType").innerHTML = "A query with lower total time will be ranked higher, i.e The Fastest query wins";
+                            }
+                            else {
+                                document.getElementById("queryType").innerHTML = "A query with higher total time will be ranked higher, i.e The Slowest query wins";
+                            }
+                        }
                     });
             }
 

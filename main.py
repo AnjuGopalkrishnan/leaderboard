@@ -92,6 +92,10 @@ def home(request: Request):
 def home(request: Request):
     return templates.TemplateResponse("hostcompetition.html", {"request": request})
 
+@app.get("/metricsDescription.html")
+def home(request: Request):
+    return templates.TemplateResponse("metricsDescription.html", {"request": request})
+
 
 @app.post("/v1/user/register")
 def register(user: models.User, db: Session = Depends(infra.db.get_db)):
@@ -253,6 +257,8 @@ def get_competition_details(id: int, db: Session = Depends(infra.db.get_db),
         "title": competition.title,
         "description": competition.description,
         "host_user_id": competition.host_user_id,
+        "metric": competition.metric,
+        "query_type" : competition.query_type
     }
 
     return competition_dict

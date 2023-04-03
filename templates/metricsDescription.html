@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>
+        .container {
+            border: none;
+            box-sizing: border-box;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .text {
+            font-family: Arial, sans-serif; /* Change font family */
+            font-size: 14px; /* Increase font size */
+            line-height: 1.5; /* Add some line height for readability */
+            color: #333; /* Change text color */
+            text-align: justify; /* Justify the text for better alignment */
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="text">
+            <h2>The metrics avaialbe in the Query Combat Platform are described below</h2>
+            <h3>Execution Time</h3>
+            <p>
+                Execution time refers to the time taken by the server to execute a SQL query and return the result to the client. Execution time is measured from the time the query execution starts until the result is returned to the client. It includes the time taken to fetch data from the disk, execute joins and other operations, and send the result back to the client.
+            </p>
+
+
+            <h3> Plannig Time</h3>
+            <p>
+                Planning time refers to the time taken by the query planner to generate an execution plan for a given SQL query. When a SQL query is submitted to the database, the query planner analyzes the query and generates an optimal execution plan for that query. The execution plan outlines how the database will execute the query and what indexes, joins, or other operations will be used to retrieve the data.
+                Planning time is measured from the time the query is received by the server until the execution plan is generated.
+            </p>
+
+            <h3>Total Time</h3>
+            <p>
+                Total time is the sum of the execution time and the planning time.
+            </p>
+            <h3>Query Complexity</h3>
+            <p>
+                The complexity of a query is determined by counting the number of keywords, such as "JOIN", and operators used in the query. A higher score indicates a more complex query.
+            </p>
+
+            <button class="back-button" id="back-button" onclick="redirect()">Back</button>
+        </div>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessToken = urlParams.get('access_token');
+
+        function redirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const accessToken = urlParams.get('access_token');
+            window.location.href = "hostcompetition.html?access_token=" + accessToken;
+        }
+
+
+    </script>
+</body>
+</html>
