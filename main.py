@@ -207,6 +207,8 @@ def create_competition(title: str = Form(...),
     current_comp_id = len(db.query(infra.db.Competitions).all()) + 1
     dbname = "c" + str(current_comp_id)
 
+    #c_engine = create_engine("postgresql://postgres:admin@localhost:5432/" + dbname, echo=True)
+
     c_engine = create_engine(os.environ.get("DB_CONNECTION_URL") + dbname, isolation_level="AUTOCOMMIT")
     if not database_exists(c_engine.url):
         try:
@@ -299,7 +301,7 @@ def evaluate_submission(c_id: int, submission: UploadFile = File(...),
         solution_file_path = row
 
     dbname = "c" + str(c_id)
-
+    #c_engine = create_engine("postgresql://postgres:admin@localhost:5432/" + dbname, echo=True)
     c_engine = create_engine(os.environ.get("DB_CONNECTION_URL") + dbname, echo=True)
 
     with c_engine.begin() as conn:
@@ -385,6 +387,7 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
         ) AS best_submissions
         ON a.user_id = best_submissions.user_id AND a.%(metric)s = best_submissions.best_time
         WHERE a.c_id = %(c_id)s
+        AND a.timestamp = (SELECT MAX(timestamp) FROM submissions WHERE c_id = %(c_id)s AND user_id = a.user_id AND query_complexity = a.query_complexity)
         ORDER BY a.%(metric)s ASC
         """ % {"metric": metric, "c_id": c_id}
         # subquery = (
@@ -408,13 +411,15 @@ def get_leaderboard(c_id: int, db: Session = Depends(infra.db.get_db)):
         SELECT a.c_id, a.user_id, submission, timestamp, planning_time, execution_time, total_time, query_complexity, attempt_number
         FROM submissions a
         JOIN (
-          SELECT MIN(b.%(metric)s) AS best_time, b.user_id 
+          SELECT MIN(b.%(metric)s) AS best_time, b.user_id
           FROM submissions b
           WHERE b.c_id = %(c_id)s
           GROUP BY b.user_id
+          
         ) AS best_submissions
         ON a.user_id = best_submissions.user_id AND a.%(metric)s = best_submissions.best_time
         WHERE a.c_id = %(c_id)s
+        AND a.timestamp = (SELECT MAX(timestamp) FROM submissions WHERE c_id = %(c_id)s AND user_id = a.user_id AND query_complexity = a.query_complexity)
         ORDER BY a.%(metric)s DESC
         """  % {"metric": metric, "c_id": c_id}
     else:
